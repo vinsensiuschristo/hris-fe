@@ -1,0 +1,171 @@
+<div class="dashboard">
+  <!-- Welcome Section -->
+  <div class="welcome-section">
+    <div class="welcome-text">
+      <h1>{{ greeting }}, {{ displayName }}! 👋</h1>
+      <p>Berikut ringkasan aktivitas hari ini</p>
+    </div>
+    <div class="quick-actions">
+      <a routerLink="/leave-requests/new" class="quick-action-btn primary">
+        <i class="pi pi-plus"></i>
+        Ajukan Cuti
+      </a>
+      <a routerLink="/overtime-requests/new" class="quick-action-btn secondary">
+        <i class="pi pi-clock"></i>
+        Ajukan Lembur
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  @if (isAdminOrHR) {
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <i class="pi pi-users"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats().totalEmployees }}</span>
+          <span class="stat-label">Total Karyawan</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon orange">
+          <i class="pi pi-calendar"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats().pendingLeaveRequests }}</span>
+          <span class="stat-label">Pengajuan Cuti Pending</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <i class="pi pi-clock"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats().pendingOvertimeRequests }}</span>
+          <span class="stat-label">Pengajuan Lembur Pending</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="pi pi-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats().approvedThisMonth }}</span>
+          <span class="stat-label">Disetujui Bulan Ini</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Main Content Grid -->
+  <div class="content-grid">
+    <!-- Chart Section -->
+    @if (isAdminOrHR) {
+      <div class="hris-card chart-card">
+        <div class="card-header">
+          <h3>Statistik Persetujuan</h3>
+        </div>
+        <div class="card-body">
+          <p-chart type="bar" [data]="leaveChartData" [options]="leaveChartOptions" height="300px" />
+        </div>
+      </div>
+    }
+
+    <!-- Recent Requests -->
+    <div class="hris-card recent-card">
+      <div class="card-header">
+        <h3>Pengajuan Terbaru</h3>
+        <a routerLink="/leave-requests" class="view-all">Lihat Semua</a>
+      </div>
+      <div class="card-body">
+        <p-table [value]="recentRequests()" [tableStyle]="{ 'min-width': '100%' }">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Nama</th>
+              <th>Tipe</th>
+              <th>Tanggal</th>
+              <th>Status</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-request>
+            <tr>
+              <td>{{ request.employeeName }}</td>
+              <td>{{ getTypeLabel(request.type) }}</td>
+              <td>{{ request.date }}</td>
+              <td>
+                <p-tag 
+                  [value]="getStatusLabel(request.status)" 
+                  [severity]="getStatusSeverity(request.status)"
+                />
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="4" class="text-center text-muted">
+                Tidak ada pengajuan terbaru
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Employee Quick Stats (for regular employees) -->
+  @if (!isAdminOrHR) {
+    <div class="employee-stats">
+      <div class="hris-card">
+        <div class="card-header">
+          <h3>Sisa Cuti Anda</h3>
+        </div>
+        <div class="card-body">
+          <div class="leave-balance">
+            <div class="balance-item">
+              <span class="balance-value">12</span>
+              <span class="balance-label">Cuti Tahunan</span>
+            </div>
+            <div class="balance-item">
+              <span class="balance-value">3</span>
+              <span class="balance-label">Cuti Sakit</span>
+            </div>
+            <div class="balance-item">
+              <span class="balance-value">2</span>
+              <span class="balance-label">Cuti Khusus</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="hris-card">
+        <div class="card-header">
+          <h3>Riwayat Pengajuan</h3>
+        </div>
+        <div class="card-body">
+          <div class="history-summary">
+            <div class="history-item approved">
+              <i class="pi pi-check-circle"></i>
+              <span class="count">5</span>
+              <span class="label">Disetujui</span>
+            </div>
+            <div class="history-item pending">
+              <i class="pi pi-clock"></i>
+              <span class="count">2</span>
+              <span class="label">Menunggu</span>
+            </div>
+            <div class="history-item rejected">
+              <i class="pi pi-times-circle"></i>
+              <span class="count">1</span>
+              <span class="label">Ditolak</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

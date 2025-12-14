@@ -1,0 +1,70 @@
+<header class="app-header">
+  <div class="header-left">
+    <!-- Desktop: Collapse Sidebar Button -->
+    <button 
+      class="toggle-btn desktop-only"
+      (click)="onToggleSidebar()"
+    >
+      <i class="pi" [ngClass]="isSidebarCollapsed ? 'pi-bars' : 'pi-times'"></i>
+    </button>
+    
+    <!-- Mobile: Hamburger Menu -->
+    <button 
+      class="toggle-btn mobile-only"
+      (click)="onToggleMobileMenu()"
+    >
+      <i class="pi pi-bars"></i>
+    </button>
+    
+    <!-- Search (Optional) -->
+    <div class="header-search desktop-only">
+      <i class="pi pi-search"></i>
+      <input type="text" placeholder="Cari..." class="search-input" />
+    </div>
+  </div>
+  
+  <div class="header-right">
+    <!-- Notifications -->
+    <button class="header-icon-btn">
+      <i class="pi pi-bell"></i>
+      <span class="notification-badge">3</span>
+    </button>
+    
+    <!-- User Menu -->
+    <div class="user-menu" (click)="op.toggle($event)">
+      <div class="user-avatar-circle">{{ userInitials }}</div>
+      <div class="user-info desktop-only">
+        <span class="user-name">{{ displayName }}</span>
+        <span class="user-role">{{ userRole }}</span>
+      </div>
+      <i class="pi pi-chevron-down desktop-only"></i>
+    </div>
+    
+    <p-popover #op>
+      <ng-template pTemplate="content">
+        <div class="user-dropdown">
+          <div class="dropdown-header">
+            <div class="user-avatar-circle large">{{ userInitials }}</div>
+            <div class="dropdown-user-info">
+              <span class="dropdown-name">{{ displayName }}</span>
+              <span class="dropdown-role">{{ userRole }}</span>
+            </div>
+          </div>
+          <hr />
+          <ul class="dropdown-menu">
+            @for (item of userMenuItems; track $index) {
+              @if (item.separator) {
+                <li class="separator"></li>
+              } @else {
+                <li class="menu-item" (click)="item.command && item.command({})">
+                  <i [class]="item.icon"></i>
+                  <span>{{ item.label }}</span>
+                </li>
+              }
+            }
+          </ul>
+        </div>
+      </ng-template>
+    </p-popover>
+  </div>
+</header>

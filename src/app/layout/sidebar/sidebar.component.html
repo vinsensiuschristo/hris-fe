@@ -1,0 +1,84 @@
+<aside class="sidebar" [class.collapsed]="isCollapsed" [class.mobile-open]="isMobileOpen">
+  <!-- Logo -->
+  <div class="sidebar-header">
+    <div class="logo">
+      <i class="pi pi-building"></i>
+      @if (!isCollapsed) {
+        <span class="logo-text">HRIS</span>
+      }
+    </div>
+  </div>
+  
+  <!-- Navigation Menu -->
+  <nav class="sidebar-nav">
+    <ul class="menu-list">
+      @for (item of menuItems; track $index) {
+        @if (isMenuVisible(item)) {
+          @if (item.separator) {
+            <li class="menu-separator"></li>
+          } @else {
+            <li class="menu-item" [class.active]="isActiveRoute(item.routerLink)">
+              @if (item.children && item.children.length > 0) {
+                <!-- Menu with submenu -->
+                <a 
+                  class="menu-link has-submenu"
+                  [class.expanded]="isSubmenuExpanded(item.label || '')"
+                  (click)="toggleSubmenu(item.label || '')"
+                >
+                  <i [class]="item.icon" class="menu-icon"></i>
+                  @if (!isCollapsed) {
+                    <span class="menu-text">{{ item.label }}</span>
+                    <i 
+                      class="pi submenu-arrow" 
+                      [class.pi-chevron-down]="!isSubmenuExpanded(item.label || '')"
+                      [class.pi-chevron-up]="isSubmenuExpanded(item.label || '')"
+                    ></i>
+                  }
+                </a>
+                
+                @if (!isCollapsed && isSubmenuExpanded(item.label || '')) {
+                  <ul class="submenu">
+                    @for (child of item.children; track $index) {
+                      <li class="submenu-item" [class.active]="isActiveRoute(child.routerLink)">
+                        <a 
+                          [routerLink]="child.routerLink"
+                          class="submenu-link"
+                          (click)="onMenuClick()"
+                        >
+                          <i [class]="child.icon" class="submenu-icon"></i>
+                          <span>{{ child.label }}</span>
+                        </a>
+                      </li>
+                    }
+                  </ul>
+                }
+              } @else {
+                <!-- Regular menu item -->
+                <a 
+                  [routerLink]="item.routerLink"
+                  class="menu-link"
+                  (click)="onMenuClick()"
+                >
+                  <i [class]="item.icon" class="menu-icon"></i>
+                  @if (!isCollapsed) {
+                    <span class="menu-text">{{ item.label }}</span>
+                  }
+                  @if (item.badge) {
+                    <span class="menu-badge">{{ item.badge }}</span>
+                  }
+                </a>
+              }
+            </li>
+          }
+        }
+      }
+    </ul>
+  </nav>
+  
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer">
+    @if (!isCollapsed) {
+      <div class="version">v1.0.0</div>
+    }
+  </div>
+</aside>

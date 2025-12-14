@@ -1,0 +1,28 @@
+<div class="main-layout" [class.sidebar-collapsed]="isSidebarCollapsed()">
+  <!-- Sidebar -->
+  <app-sidebar 
+    [isCollapsed]="isSidebarCollapsed()"
+    [isMobileOpen]="isMobileMenuOpen()"
+    (closeMobile)="closeMobileMenu()"
+  />
+  
+  <!-- Mobile Overlay -->
+  @if (isMobileMenuOpen()) {
+    <div class="mobile-overlay" (click)="closeMobileMenu()"></div>
+  }
+  
+  <!-- Main Content Area -->
+  <div class="main-content">
+    <!-- Header -->
+    <app-header 
+      [isSidebarCollapsed]="isSidebarCollapsed()"
+      (toggleSidebar)="toggleSidebar()"
+      (toggleMobileMenu)="toggleMobileMenu()"
+    />
+    
+    <!-- Page Content -->
+    <main class="page-content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

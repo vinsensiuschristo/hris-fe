@@ -1,0 +1,251 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--hris-sidebar-width);
+  height: 100vh;
+  background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  z-index: 999;
+  transition: width 0.3s ease, transform 0.3s ease;
+  overflow-x: hidden;
+  
+  &.collapsed {
+    width: var(--hris-sidebar-collapsed-width);
+    
+    .sidebar-header {
+      padding: 1rem 0.75rem;
+      justify-content: center;
+    }
+    
+    .menu-link {
+      padding: 0.75rem;
+      justify-content: center;
+      
+      .menu-text, .submenu-arrow, .menu-badge {
+        display: none;
+      }
+    }
+    
+    .menu-icon {
+      margin-right: 0;
+    }
+  }
+}
+
+.sidebar-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    
+    i {
+      font-size: 1.75rem;
+      color: var(--hris-primary-light);
+    }
+    
+    .logo-text {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  }
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 1rem 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+  }
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-separator {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0.75rem 1rem;
+}
+
+.menu-item {
+  margin: 0.25rem 0.75rem;
+  
+  &.active > .menu-link {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--hris-primary-light);
+    
+    .menu-icon {
+      color: var(--hris-primary-light);
+    }
+  }
+}
+
+.menu-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: var(--hris-border-radius);
+  cursor: pointer;
+  transition: var(--hris-transition);
+  text-decoration: none;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    
+    .menu-icon {
+      color: white;
+    }
+  }
+  
+  &.has-submenu {
+    .submenu-arrow {
+      margin-left: auto;
+      font-size: 0.75rem;
+      transition: transform 0.2s;
+    }
+  }
+}
+
+.menu-icon {
+  font-size: 1.125rem;
+  margin-right: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  transition: var(--hris-transition);
+  min-width: 20px;
+  text-align: center;
+}
+
+.menu-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.menu-badge {
+  margin-left: auto;
+  background: var(--hris-danger);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  min-width: 20px;
+  text-align: center;
+}
+
+// Submenu
+.submenu {
+  list-style: none;
+  padding: 0.25rem 0 0.25rem 2rem;
+  margin: 0;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.submenu-item {
+  margin: 0.125rem 0;
+  
+  &.active .submenu-link {
+    color: var(--hris-primary-light);
+    
+    .submenu-icon {
+      color: var(--hris-primary-light);
+    }
+  }
+}
+
+.submenu-link {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  border-radius: var(--hris-border-radius);
+  cursor: pointer;
+  transition: var(--hris-transition);
+  text-decoration: none;
+  font-size: 0.8125rem;
+  
+  &:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.submenu-icon {
+  font-size: 0.875rem;
+  margin-right: 0.625rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  
+  .version {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-align: center;
+  }
+}
+
+// Mobile styles
+@media (max-width: 992px) {
+  .sidebar {
+    transform: translateX(-100%);
+    
+    &.mobile-open {
+      transform: translateX(0);
+      width: var(--hris-sidebar-width);
+      
+      .menu-text, .submenu-arrow {
+        display: inline;
+      }
+      
+      .menu-link {
+        justify-content: flex-start;
+        padding: 0.75rem 1rem;
+      }
+      
+      .menu-icon {
+        margin-right: 0.75rem;
+      }
+    }
+  }
+}

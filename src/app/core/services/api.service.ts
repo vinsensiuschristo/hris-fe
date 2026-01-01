@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { PaginatedResponse, PaginationParams } from '../models';
+import { PaginatedResponse } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +24,7 @@ export class ApiService {
 
   getPaginated<T>(
     endpoint: string, 
-    pagination: PaginationParams,
+    pagination: { page: number; size: number; sort?: string; direction?: 'asc' | 'desc' },
     filters?: Record<string, any>
   ): Observable<PaginatedResponse<T>> {
     const params = {

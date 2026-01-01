@@ -55,7 +55,7 @@ export class LoginComponent {
     this.authService.login(this.loginForm.value).subscribe({
       next: (response) => {
         this.isLoading.set(false);
-        this.notificationService.success('Login Berhasil', `Selamat datang, ${response.user.employee?.firstName || response.user.username}!`);
+        this.notificationService.success('Login Berhasil', `Selamat datang, ${response.user.username}!`);
         
         // Redirect to return URL or dashboard
         const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';

@@ -85,6 +85,7 @@
   gap: 1rem;
   box-shadow: var(--hris-shadow);
   transition: var(--hris-transition);
+  border: 1px solid var(--hris-gray-100);
   
   &:hover {
     transform: translateY(-2px);
@@ -147,6 +148,41 @@
       
       &:hover {
         text-decoration: underline;
+      }
+    }
+    
+    :host ::ng-deep {
+      .p-datatable {
+        .p-datatable-wrapper {
+          border: none;
+          box-shadow: none;
+        }
+        
+        .p-datatable-thead > tr > th {
+          background: var(--hris-gray-50);
+          
+          &:first-child {
+            border-top-left-radius: var(--hris-border-radius);
+          }
+          
+          &:last-child {
+            border-top-right-radius: var(--hris-border-radius);
+          }
+        }
+        
+        .p-datatable-tbody > tr {
+          &:last-child > td {
+            border-bottom: none;
+            
+            &:first-child {
+              border-bottom-left-radius: var(--hris-border-radius);
+            }
+            
+            &:last-child {
+              border-bottom-right-radius: var(--hris-border-radius);
+            }
+          }
+        }
       }
     }
   }
@@ -280,3 +316,160 @@
     gap: 1.5rem;
   }
 }
+
+// Filter Section
+.filter-section {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  
+  .filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    
+    label {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--hris-gray-600);
+    }
+  }
+}
+
+.month-picker {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--hris-gray-300);
+  border-radius: var(--hris-border-radius);
+  font-size: 0.875rem;
+  background: var(--hris-white);
+  cursor: pointer;
+  transition: var(--hris-transition);
+  
+  &:hover {
+    border-color: var(--hris-primary);
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: var(--hris-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+}
+
+// Summary Row
+.summary-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-card {
+  .summary-stats {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    
+    .summary-item {
+      display: flex;
+      flex-direction: column;
+      
+      .value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--hris-gray-900);
+      }
+      
+      .label {
+        font-size: 0.75rem;
+        color: var(--hris-gray-500);
+        margin-top: 0.25rem;
+      }
+      
+      &.success .value { color: var(--hris-success); }
+      &.warning .value { color: var(--hris-warning); }
+      &.danger .value { color: var(--hris-danger); }
+      &.info .value { color: var(--hris-info); }
+      &.primary .value { color: var(--hris-primary); }
+    }
+  }
+}
+
+// Charts Grid
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  
+  .chart-card {
+    .chart-container {
+      min-height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+}
+
+.empty-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--hris-gray-400);
+  
+  i {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  p {
+    font-size: 0.875rem;
+  }
+}
+
+// Rankings Grid
+.rankings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+// Loading Overlay
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  
+  p {
+    margin-top: 1rem;
+    color: var(--hris-gray-600);
+  }
+}
+
+// Responsive for new elements
+@media (max-width: 1200px) {
+  .charts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .summary-row,
+  .charts-grid,
+  .rankings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

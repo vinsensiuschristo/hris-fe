@@ -50,27 +50,19 @@ export class HeaderComponent {
   get userInitials(): string {
     const user = this.currentUser;
     if (!user) return '?';
-    
-    if (user.employee) {
-      return `${user.employee.firstName.charAt(0)}${user.employee.lastName.charAt(0)}`.toUpperCase();
-    }
-    return user.username.charAt(0).toUpperCase();
+    return user.username.substring(0, 2).toUpperCase();
   }
 
   get displayName(): string {
     const user = this.currentUser;
     if (!user) return 'Pengguna';
-    
-    if (user.employee) {
-      return `${user.employee.firstName} ${user.employee.lastName}`;
-    }
     return user.username;
   }
 
   get userRole(): string {
     const user = this.currentUser;
     if (!user || !user.roles || user.roles.length === 0) return '';
-    return user.roles[0].name;
+    return user.roles[0].namaRole;
   }
 
   onToggleSidebar(): void {

@@ -1,68 +1,55 @@
 // Core Entity Models for HRIS Application
+// Updated to match Backend API Response format
 
 // ===================== Master Data Models =====================
 
 export interface Department {
-  id: number;
-  name: string;
-  code: string;
-  description?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  id: string;
+  namaDepartment: string;
 }
 
 export interface Position {
-  id: number;
-  name: string;
-  level: number;
-  description?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  id: string;
+  namaJabatan: string;
 }
 
 export interface Role {
-  id: number;
-  name: string;
-  description?: string;
-  permissions?: string[];
-  createdAt?: Date;
-  updatedAt?: Date;
+  id: string;
+  namaRole: string;
 }
 
 export interface LeaveType {
-  id: number;
-  name: string;
-  maxDays: number;
-  description?: string;
-  isPaid: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
+  id: string;
+  namaJenis: string;
 }
 
 export interface RequestStatus {
-  id: number;
-  name: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
-  description?: string;
+  id: string;
+  namaStatus: string;
 }
 
 // ===================== User & Auth Models =====================
 
 export interface User {
-  id: number;
+  id: string;
   username: string;
-  email: string;
-  isActive: boolean;
+  email?: string;
   roles: Role[];
   employee?: Employee;
-  createdAt?: Date;
-  updatedAt?: Date;
 }
 
+// Backend returns simple auth response
 export interface AuthResponse {
+  token: string;
+  username: string;
+}
+
+// Frontend extended auth (for storage)
+export interface AuthData {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
   tokenType: string;
-  expiresIn: number;
+  expiresIn?: number;
   user: User;
 }
 
@@ -72,116 +59,234 @@ export interface LoginRequest {
   rememberMe?: boolean;
 }
 
+export interface RegisterRequest {
+  username: string;
+  password: string;
+}
+
 // ===================== Employee Models =====================
 
 export interface Employee {
-  id: number;
-  employeeCode: string;
-  firstName: string;
-  lastName: string;
+  id: string;
+  nama: string;
+  nik: string;
   email: string;
-  phone?: string;
-  address?: string;
-  dateOfBirth?: Date;
-  gender?: 'MALE' | 'FEMALE';
-  photoUrl?: string;
-  department: Department;
-  position: Position;
-  user?: User;
-  managerId?: number;
-  manager?: Employee;
-  hireDate: Date;
-  leaveBalance: number;
-  isActive: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
+  jabatan?: Position;
+  departemen?: Department;
+  sisaCuti: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface EmployeeFilter {
-  search?: string;
-  departmentId?: number;
-  positionId?: number;
-  isActive?: boolean;
+export interface EmployeeCreateRequest {
+  nama: string;
+  nik: string;
+  email: string;
+  jabatanId?: string;
+  departemenId?: string;
+  sisaCuti?: number;
+}
+
+export interface EmployeeUpdateRequest {
+  nama?: string;
+  email?: string;
+  jabatanId?: string;
+  departemenId?: string;
+  sisaCuti?: number;
 }
 
 // ===================== Leave Request Models =====================
 
 export interface LeaveRequest {
-  id: number;
-  employee: Employee;
-  leaveType: LeaveType;
-  startDate: Date;
-  endDate: Date;
-  totalDays: number;
-  reason: string;
+  id: string;
+  karyawan: LeaveRequestEmployee;
+  jenisCuti: LeaveType;
   status: RequestStatus;
-  approvedBy?: Employee;
-  approvedAt?: Date;
-  rejectionReason?: string;
-  createdAt: Date;
-  updatedAt?: Date;
+  tglMulai: string;
+  tglSelesai: string;
+  alasan?: string;
+  jumlahHari: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface LeaveRequestCreate {
-  leaveTypeId: number;
-  startDate: string;
-  endDate: string;
-  reason: string;
+export interface LeaveRequestEmployee {
+  id: string;
+  nama: string;
+  nik: string;
+  email: string;
+  sisaCuti: number;
 }
 
-export interface LeaveBalance {
-  employeeId: number;
-  leaveTypeId: number;
-  leaveTypeName: string;
-  totalEntitlement: number;
-  used: number;
-  remaining: number;
+export interface LeaveRequestCreateRequest {
+  karyawanId: string;
+  jenisCutiId: string;
+  tglMulai: string;
+  tglSelesai: string;
+  alasan?: string;
 }
 
 // ===================== Overtime Request Models =====================
 
 export interface OvertimeRequest {
-  id: number;
-  employee: Employee;
-  date: Date;
-  startTime: string;
-  endTime: string;
-  totalHours: number;
-  description: string;
+  id: string;
+  karyawan: OvertimeEmployee;
+  tglLembur: string;
+  jamMulai: string;
+  jamSelesai: string;
+  durasi: number;
+  estimasiBiaya: number;
   status: RequestStatus;
-  evidences: OvertimeEvidence[];
-  approvedBy?: Employee;
-  approvedAt?: Date;
-  rejectionReason?: string;
-  createdAt: Date;
-  updatedAt?: Date;
+  evidences?: OvertimeEvidence[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface OvertimeRequestCreate {
-  date: string;
-  startTime: string;
-  endTime: string;
-  description: string;
+export interface OvertimeEmployee {
+  id: string;
+  nama: string;
+  nik: string;
+  email: string;
+}
+
+export interface OvertimeRequestCreateRequest {
+  karyawanId: string;
+  tglLembur: string;
+  jamMulai: string;
+  jamSelesai: string;
 }
 
 export interface OvertimeEvidence {
-  id: number;
-  overtimeRequestId: number;
-  fileName: string;
-  fileUrl: string;
-  fileSize: number;
-  mimeType: string;
-  uploadedAt: Date;
+  id: string;
+  filePath: string;
+  fileType: string;
+  uploadedAt: string;
 }
 
+// ===================== Overtime Payment Models =====================
+
 export interface OvertimePayment {
-  id: number;
-  overtimeRequest: OvertimeRequest;
-  amount: number;
-  paymentDate: Date;
-  notes?: string;
-  paidAt: Date;
-  createdAt: Date;
+  id: string;
+  pengajuanLembur: OvertimePaymentRequest;
+  finance?: OvertimeEmployee;
+  tglPembayaran?: string;
+  status: RequestStatus;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface OvertimePaymentRequest {
+  id: string;
+  karyawan: OvertimeEmployee;
+  tglLembur: string;
+  durasi: number;
+  estimasiBiaya: number;
+  statusLembur: string;
+}
+
+export interface OvertimePaymentCreateRequest {
+  overtimeRequestId: string;
+  financeId?: string;
+}
+
+// ===================== Attendance Models =====================
+
+export interface Attendance {
+  id: string;
+  karyawan: AttendanceEmployee;
+  tanggal: string;
+  jamMasuk?: string;
+  jamKeluar?: string;
+  status: string; // HADIR, TERLAMBAT, IZIN, SAKIT, ALPHA
+  keterlambatanMenit: number;
+  keterangan?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AttendanceEmployee {
+  id: string;
+  nama: string;
+  nik: string;
+  email: string;
+  departemen?: string;
+  jabatan?: string;
+}
+
+export interface CheckInRequest {
+  karyawanId: string;
+  jamMasuk?: string;
+  keterangan?: string;
+}
+
+export interface CheckOutRequest {
+  karyawanId: string;
+  jamKeluar?: string;
+}
+
+// ===================== Dashboard Models =====================
+
+export interface DashboardStats {
+  totalKaryawan: number;
+  attendanceSummary: AttendanceSummary;
+  leaveSummary: LeaveSummary;
+  overtimeSummary: OvertimeSummary;
+  topLateEmployees: LateEmployee[];
+  topOvertimeEmployees: OvertimeEmployeeRanking[];
+  topLeaveEmployees: LeaveEmployee[];
+}
+
+export interface AttendanceSummary {
+  totalHadir: number;
+  totalTerlambat: number;
+  totalIzin: number;
+  totalSakit: number;
+  totalAlpha: number;
+  totalKeterlambatanMenit: number;
+}
+
+export interface LeaveSummary {
+  totalPengajuan: number;
+  disetujui: number;
+  ditolak: number;
+  menunggu: number;
+}
+
+export interface OvertimeSummary {
+  totalPengajuan: number;
+  disetujui: number;
+  ditolak: number;
+  menunggu: number;
+  totalBiaya: number;
+  totalJamLembur: number;
+}
+
+export interface LateEmployee {
+  id: string;
+  nama: string;
+  nik: string;
+  departemen: string;
+  jumlahTerlambat: number;
+  totalMenitTerlambat: number;
+}
+
+export interface OvertimeEmployeeRanking {
+  id: string;
+  nama: string;
+  nik: string;
+  departemen: string;
+  jumlahHariLembur: number;
+  totalJamLembur: number;
+  totalBiayaLembur: number;
+}
+
+export interface LeaveEmployee {
+  id: string;
+  nama: string;
+  nik: string;
+  departemen: string;
+  jumlahCuti: number;
+  totalHariCuti: number;
 }
 
 // ===================== API Response Models =====================
@@ -190,7 +295,7 @@ export interface ApiResponse<T> {
   success: boolean;
   message: string;
   data: T;
-  timestamp: Date;
+  timestamp: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -204,27 +309,16 @@ export interface PaginatedResponse<T> {
   empty: boolean;
 }
 
-export interface PaginationParams {
-  page: number;
-  size: number;
-  sort?: string;
-  direction?: 'asc' | 'desc';
-}
-
-// ===================== Notification Models =====================
+// ===================== Notification & Menu Models =====================
 
 export interface Notification {
-  id: number;
-  userId: number;
+  id: string;
   title: string;
   message: string;
   type: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR';
   isRead: boolean;
-  link?: string;
-  createdAt: Date;
+  createdAt: string;
 }
-
-// ===================== Menu & Navigation Models =====================
 
 export interface NavMenuItem {
   label?: string;
@@ -235,4 +329,3 @@ export interface NavMenuItem {
   badge?: number;
   separator?: boolean;
 }
-

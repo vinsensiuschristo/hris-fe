@@ -61,6 +61,12 @@ export class SidebarComponent implements OnInit {
           }
         ]
       },
+      {
+        label: 'Kehadiran',
+        icon: 'pi pi-calendar-times',
+        routerLink: '/attendance',
+        roles: ['EMPLOYEE', 'HR', 'ADMIN']
+      },
       { separator: true },
       {
         label: 'Karyawan',

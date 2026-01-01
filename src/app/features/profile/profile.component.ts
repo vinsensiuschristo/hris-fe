@@ -87,6 +87,10 @@ import { AuthService } from '../../core/services/auth.service';
       font-size: 1rem;
       color: var(--hris-gray-900);
     }
+    
+    .text-muted {
+      color: var(--hris-gray-500);
+    }
   `]
 })
 export class ProfileComponent {
@@ -99,20 +103,12 @@ export class ProfileComponent {
   get userInitials(): string {
     const user = this.currentUser;
     if (!user) return '?';
-    
-    if (user.employee) {
-      return `${user.employee.firstName.charAt(0)}${user.employee.lastName.charAt(0)}`.toUpperCase();
-    }
     return user.username.substring(0, 2).toUpperCase();
   }
 
   get displayName(): string {
     const user = this.currentUser;
     if (!user) return 'Pengguna';
-    
-    if (user.employee) {
-      return `${user.employee.firstName} ${user.employee.lastName}`;
-    }
     return user.username;
   }
 
@@ -123,6 +119,6 @@ export class ProfileComponent {
   get userRole(): string {
     const user = this.currentUser;
     if (!user || !user.roles || user.roles.length === 0) return '-';
-    return user.roles.map(r => r.name).join(', ');
+    return user.roles.map(r => r.namaRole).join(', ');
   }
 }

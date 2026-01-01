@@ -219,8 +219,14 @@
     }
   }
   
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
   .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 0;
     
     label {
       display: block;

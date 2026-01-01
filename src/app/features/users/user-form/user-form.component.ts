@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+<div class="page-container"><div class="page-content">import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -276,3 +276,4 @@ export class UserFormComponent implements OnInit {
     });
   }
 }
+</div></div>

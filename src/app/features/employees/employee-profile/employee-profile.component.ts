@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+<div class="page-container"><div class="page-content">import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
@@ -166,3 +166,4 @@ export class EmployeeProfileComponent implements OnInit {
     return nama.substring(0, 2).toUpperCase();
   }
 }
+</div></div>

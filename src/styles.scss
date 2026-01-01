@@ -202,6 +202,33 @@ h6 { font-size: 0.875rem; }
 }
 
 /* ===================== Page Header ===================== */
+/* ===================== Page Layouts ===================== */
+.page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - var(--hris-header-height)); /* Adjust if you have a header */
+  padding: 1.5rem;
+  background-color: var(--hris-gray-50);
+}
+
+.page-content {
+  width: 100%;
+  max-width: 1200px; /* Or any max-width you prefer */
+  padding: 1.5rem;
+  background-color: var(--hris-white);
+  border-radius: var(--hris-border-radius-lg);
+  box-shadow: var(--hris-shadow);
+}
+
+/* Specific layout for forms to ensure consistency */
+.form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .page-header {
   margin-bottom: 1.5rem;
   display: flex;

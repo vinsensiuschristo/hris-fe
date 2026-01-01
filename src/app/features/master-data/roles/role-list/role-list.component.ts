@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+<div class="page-container"><div class="page-content">import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -107,3 +107,4 @@ export class RoleListComponent implements OnInit {
     });
   }
 }
+</div></div>

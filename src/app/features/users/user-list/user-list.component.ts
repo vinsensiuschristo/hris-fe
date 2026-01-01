@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+<div class="page-container"><div class="page-content">import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TableModule } from 'primeng/table';
@@ -159,3 +159,4 @@ export class UserListComponent implements OnInit {
     });
   }
 }
+</div></div>

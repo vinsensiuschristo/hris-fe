@@ -24,10 +24,12 @@ import { Employee, EmployeeCreateRequest, EmployeeUpdateRequest } from '../../..
   ],
   providers: [MessageService],
   template: `
-    <!-- Access Denied -->
-    @if (!isAdminOrHR) {
-      <div class="access-denied">
-        <i class="pi pi-lock"></i>
+    <div class="page-container">
+      <div class="page-content">
+        <!-- Access Denied -->
+        @if (!isAdminOrHR) {
+          <div class="access-denied">
+            <i class="pi pi-lock"></i>
         <h2>Akses Ditolak</h2>
         <p>Anda tidak memiliki izin untuk mengakses halaman ini.</p>
         <a routerLink="/dashboard" pButton label="Kembali ke Dashboard" icon="pi pi-arrow-left"></a>
@@ -151,6 +153,8 @@ import { Employee, EmployeeCreateRequest, EmployeeUpdateRequest } from '../../..
     }
 
     <p-toast />
+    </div>
+    </div>
   `,
   styles: [`
     .access-denied {

@@ -1,4 +1,4 @@
-<div class="page-container"><div class="page-content">import { Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -21,6 +21,8 @@ import { NotificationService } from '../../../core/services/notification.service
     FileUpload
   ],
   template: `
+<div class="page-container">
+  <div class="page-content">
     <div class="page-header">
       <h1 class="page-title">Ajukan Lembur</h1>
       <p class="page-subtitle">Isi formulir untuk mengajukan lembur</p>
@@ -94,6 +96,8 @@ import { NotificationService } from '../../../core/services/notification.service
         </div>
       </form>
     </div>
+    </div>
+</div>
   `,
   styles: [`
     .w-full { width: 100%; }
@@ -129,4 +133,3 @@ export class OvertimeRequestFormComponent {
     }, 1000);
   }
 }
-</div></div>

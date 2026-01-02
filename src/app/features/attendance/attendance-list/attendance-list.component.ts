@@ -1,4 +1,4 @@
-<div class="page-container"><div class="page-content">import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -25,152 +25,156 @@ import { Attendance, CheckInRequest, CheckOutRequest } from '../../../core/model
   ],
   providers: [MessageService],
   template: `
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">Kehadiran</h1>
-        <p class="page-subtitle">{{ isAdminOrHR ? 'Kelola kehadiran karyawan' : 'Riwayat kehadiran Anda' }}</p>
-      </div>
-      <div class="quick-actions">
-        @if (!hasCheckedInToday()) {
-          <button pButton label="Check In" icon="pi pi-sign-in" (click)="checkIn()" [loading]="checkingIn()"></button>
-        } @else if (!hasCheckedOutToday()) {
-          <button pButton label="Check Out" icon="pi pi-sign-out" severity="secondary" (click)="checkOut()" [loading]="checkingOut()"></button>
-        } @else {
-          <span class="checked-complete">
-            <i class="pi pi-check-circle"></i>
-            Sudah check-in & check-out hari ini
-          </span>
-        }
-      </div>
-    </div>
-
-    <!-- Today's Status Card -->
-    @if (todayAttendance()) {
-      <div class="today-status-card hris-card mb-4">
-        <div class="status-header">
-          <h3>Status Hari Ini</h3>
-          <p-tag [value]="getStatusLabel(todayAttendance()!.status)" [severity]="getStatusSeverity(todayAttendance()!.status)" />
+    <div class="page-container">
+      <div class="page-content">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Kehadiran</h1>
+            <p class="page-subtitle">{{ isAdminOrHR ? 'Kelola kehadiran karyawan' : 'Riwayat kehadiran Anda' }}</p>
+          </div>
+          <div class="quick-actions">
+            @if (!hasCheckedInToday()) {
+              <button pButton label="Check In" icon="pi pi-sign-in" (click)="checkIn()" [loading]="checkingIn()"></button>
+            } @else if (!hasCheckedOutToday()) {
+              <button pButton label="Check Out" icon="pi pi-sign-out" severity="secondary" (click)="checkOut()" [loading]="checkingOut()"></button>
+            } @else {
+              <span class="checked-complete">
+                <i class="pi pi-check-circle"></i>
+                Sudah check-in & check-out hari ini
+              </span>
+            }
+          </div>
         </div>
-        <div class="status-content">
-          <div class="status-item">
-            <i class="pi pi-clock"></i>
-            <div>
-              <span class="label">Jam Masuk</span>
-              <span class="value">{{ todayAttendance()!.jamMasuk || '-' }}</span>
+
+        <!-- Today's Status Card -->
+        @if (todayAttendance()) {
+          <div class="today-status-card hris-card mb-4">
+            <div class="status-header">
+              <h3>Status Hari Ini</h3>
+              <p-tag [value]="getStatusLabel(todayAttendance()!.status)" [severity]="getStatusSeverity(todayAttendance()!.status)" />
             </div>
-          </div>
-          <div class="status-item">
-            <i class="pi pi-clock"></i>
-            <div>
-              <span class="label">Jam Keluar</span>
-              <span class="value">{{ todayAttendance()!.jamKeluar || '-' }}</span>
-            </div>
-          </div>
-          @if (todayAttendance()!.keterlambatanMenit > 0) {
-            <div class="status-item warning">
-              <i class="pi pi-exclamation-triangle"></i>
-              <div>
-                <span class="label">Keterlambatan</span>
-                <span class="value">{{ todayAttendance()!.keterlambatanMenit }} menit</span>
+            <div class="status-content">
+              <div class="status-item">
+                <i class="pi pi-clock"></i>
+                <div>
+                  <span class="label">Jam Masuk</span>
+                  <span class="value">{{ todayAttendance()!.jamMasuk || '-' }}</span>
+                </div>
               </div>
+              <div class="status-item">
+                <i class="pi pi-clock"></i>
+                <div>
+                  <span class="label">Jam Keluar</span>
+                  <span class="value">{{ todayAttendance()!.jamKeluar || '-' }}</span>
+                </div>
+              </div>
+              @if (todayAttendance()!.keterlambatanMenit > 0) {
+                <div class="status-item warning">
+                  <i class="pi pi-exclamation-triangle"></i>
+                  <div>
+                    <span class="label">Keterlambatan</span>
+                    <span class="value">{{ todayAttendance()!.keterlambatanMenit }} menit</span>
+                  </div>
+                </div>
+              }
             </div>
+          </div>
+        }
+
+        <!-- Filter Section -->
+        @if (isAdminOrHR) {
+          <div class="filter-section hris-card mb-4">
+            <div class="filter-item">
+              <label>Tanggal Mulai</label>
+              <input type="date" [(ngModel)]="filterStartDate" (change)="onFilterChange()" class="form-input" />
+            </div>
+            <div class="filter-item">
+              <label>Tanggal Akhir</label>
+              <input type="date" [(ngModel)]="filterEndDate" (change)="onFilterChange()" class="form-input" />
+            </div>
+            <div class="filter-item">
+              <label>Status</label>
+              <select [(ngModel)]="filterStatus" (change)="onFilterChange()" class="form-input">
+                <option value="">Semua Status</option>
+                <option value="HADIR">Hadir</option>
+                <option value="TERLAMBAT">Terlambat</option>
+                <option value="IZIN">Izin</option>
+                <option value="SAKIT">Sakit</option>
+                <option value="ALPHA">Alpha</option>
+              </select>
+            </div>
+          </div>
+        }
+
+        <div class="hris-card">
+          @if (loading()) {
+            <div class="loading-container">
+              <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+              <p>Memuat data...</p>
+            </div>
+          } @else {
+            <p-table
+              [value]="attendances()"
+              [paginator]="true"
+              [rows]="10"
+              [rowHover]="true"
+              [showCurrentPageReport]="true"
+              currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords} data"
+            >
+              <ng-template pTemplate="header">
+                <tr>
+                  @if (isAdminOrHR) {
+                    <th>Karyawan</th>
+                  }
+                  <th>Tanggal</th>
+                  <th>Jam Masuk</th>
+                  <th>Jam Keluar</th>
+                  <th>Status</th>
+                  <th>Keterlambatan</th>
+                  <th>Keterangan</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-attendance>
+                <tr>
+                  @if (isAdminOrHR) {
+                    <td>
+                      <div class="fw-semibold">{{ attendance.karyawan?.nama }}</div>
+                      <div class="text-muted small">{{ attendance.karyawan?.departemen || '-' }}</div>
+                    </td>
+                  }
+                  <td>{{ attendance.tanggal }}</td>
+                  <td>{{ attendance.jamMasuk || '-' }}</td>
+                  <td>{{ attendance.jamKeluar || '-' }}</td>
+                  <td>
+                    <p-tag [value]="getStatusLabel(attendance.status)" [severity]="getStatusSeverity(attendance.status)" />
+                  </td>
+                  <td>
+                    @if (attendance.keterlambatanMenit > 0) {
+                      <span class="text-warning">{{ attendance.keterlambatanMenit }} menit</span>
+                    } @else {
+                      <span class="text-muted">-</span>
+                    }
+                  </td>
+                  <td>{{ attendance.keterangan || '-' }}</td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td [attr.colspan]="isAdminOrHR ? 7 : 6" class="text-center p-4">
+                    <div class="empty-state">
+                      <i class="pi pi-calendar empty-icon"></i>
+                      <h4 class="empty-title">Belum ada data kehadiran</h4>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
           }
         </div>
-      </div>
-    }
-
-    <!-- Filter Section -->
-    @if (isAdminOrHR) {
-      <div class="filter-section hris-card mb-4">
-        <div class="filter-item">
-          <label>Tanggal Mulai</label>
-          <input type="date" [(ngModel)]="filterStartDate" (change)="onFilterChange()" class="form-input" />
-        </div>
-        <div class="filter-item">
-          <label>Tanggal Akhir</label>
-          <input type="date" [(ngModel)]="filterEndDate" (change)="onFilterChange()" class="form-input" />
-        </div>
-        <div class="filter-item">
-          <label>Status</label>
-          <select [(ngModel)]="filterStatus" (change)="onFilterChange()" class="form-input">
-            <option value="">Semua Status</option>
-            <option value="HADIR">Hadir</option>
-            <option value="TERLAMBAT">Terlambat</option>
-            <option value="IZIN">Izin</option>
-            <option value="SAKIT">Sakit</option>
-            <option value="ALPHA">Alpha</option>
-          </select>
-        </div>
-      </div>
-    }
     
-    <div class="hris-card">
-      @if (loading()) {
-        <div class="loading-container">
-          <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-          <p>Memuat data...</p>
-        </div>
-      } @else {
-        <p-table 
-          [value]="attendances()" 
-          [paginator]="true" 
-          [rows]="10"
-          [rowHover]="true"
-          [showCurrentPageReport]="true"
-          currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords} data"
-        >
-          <ng-template pTemplate="header">
-            <tr>
-              @if (isAdminOrHR) {
-                <th>Karyawan</th>
-              }
-              <th>Tanggal</th>
-              <th>Jam Masuk</th>
-              <th>Jam Keluar</th>
-              <th>Status</th>
-              <th>Keterlambatan</th>
-              <th>Keterangan</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-attendance>
-            <tr>
-              @if (isAdminOrHR) {
-                <td>
-                  <div class="fw-semibold">{{ attendance.karyawan?.nama }}</div>
-                  <div class="text-muted small">{{ attendance.karyawan?.departemen || '-' }}</div>
-                </td>
-              }
-              <td>{{ attendance.tanggal }}</td>
-              <td>{{ attendance.jamMasuk || '-' }}</td>
-              <td>{{ attendance.jamKeluar || '-' }}</td>
-              <td>
-                <p-tag [value]="getStatusLabel(attendance.status)" [severity]="getStatusSeverity(attendance.status)" />
-              </td>
-              <td>
-                @if (attendance.keterlambatanMenit > 0) {
-                  <span class="text-warning">{{ attendance.keterlambatanMenit }} menit</span>
-                } @else {
-                  <span class="text-muted">-</span>
-                }
-              </td>
-              <td>{{ attendance.keterangan || '-' }}</td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td [attr.colspan]="isAdminOrHR ? 7 : 6" class="text-center p-4">
-                <div class="empty-state">
-                  <i class="pi pi-calendar empty-icon"></i>
-                  <h4 class="empty-title">Belum ada data kehadiran</h4>
-                </div>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      }
+        <p-toast />
+      </div>
     </div>
-
-    <p-toast />
   `,
   styles: [`
     .quick-actions { display: flex; gap: 0.5rem; align-items: center; }
@@ -410,4 +414,3 @@ export class AttendanceListComponent implements OnInit {
     }
   }
 }
-</div></div>

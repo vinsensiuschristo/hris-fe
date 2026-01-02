@@ -1,4 +1,4 @@
-<div class="page-container"><div class="page-content">import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -25,6 +25,8 @@ import { User, Role } from '../../../core/models';
   ],
   providers: [MessageService],
   template: `
+<div class="page-container">
+  <div class="page-content">
     <!-- Access Denied Check -->
     @if (!isAdmin) {
       <div class="access-denied">
@@ -118,8 +120,9 @@ import { User, Role } from '../../../core/models';
         }
       </div>
     }
-
+    </div>
     <p-toast />
+</div>
   `,
   styles: [`
     .access-denied {
@@ -276,4 +279,3 @@ export class UserFormComponent implements OnInit {
     });
   }
 }
-</div></div>

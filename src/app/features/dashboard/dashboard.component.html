@@ -4,288 +4,288 @@
       <!-- Welcome Section -->
       <div class="welcome-section">
         <div class="welcome-text">
-      <h1>{{ greeting }}, {{ displayName }}! 👋</h1>
-      <p>Berikut ringkasan aktivitas {{ selectedMonth | date:'MMMM yyyy' }}</p>
-    </div>
-    <div class="quick-actions">
-      <a routerLink="/leave-requests/new" class="quick-action-btn primary">
-        <i class="pi pi-plus"></i>
-        Ajukan Cuti
-      </a>
-      <a routerLink="/overtime-requests/new" class="quick-action-btn secondary">
-        <i class="pi pi-clock"></i>
-        Ajukan Lembur
-      </a>
+          <h1>{{ greeting }}, {{ displayName }}! 👋</h1>
+          <p>Berikut ringkasan aktivitas {{ selectedMonth | date:'MMMM yyyy' }}</p>
+        </div>
+        <div class="quick-actions">
+          <a routerLink="/leave-requests/new" class="quick-action-btn primary">
+            <i class="pi pi-plus"></i>
+            Ajukan Cuti
+          </a>
+          <a routerLink="/overtime-requests/new" class="quick-action-btn secondary">
+            <i class="pi pi-clock"></i>
+            Ajukan Lembur
+          </a>
+        </div>
+      </div>
+
+      <!-- Filter Section -->
+      @if (isAdminOrHR) {
+        <div class="filter-section">
+          <div class="filter-item">
+            <label>Bulan</label>
+            <input
+              type="month"
+              [value]="selectedMonth | date:'yyyy-MM'"
+              (change)="onMonthChange($event)"
+              class="month-picker"
+            />
+          </div>
+        </div>
+      }
+
+      <!-- Stats Cards -->
+      @if (isAdminOrHR && stats()) {
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">
+              <i class="pi pi-users"></i>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats()!.totalKaryawan }}</span>
+              <span class="stat-label">Total Karyawan</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon green">
+              <i class="pi pi-check-circle"></i>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats()!.attendanceSummary.totalHadir }}</span>
+              <span class="stat-label">Total Hadir</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon orange">
+              <i class="pi pi-exclamation-triangle"></i>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats()!.attendanceSummary.totalTerlambat }}</span>
+              <span class="stat-label">Total Terlambat</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon purple">
+              <i class="pi pi-clock"></i>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats()!.overtimeSummary.menunggu }}</span>
+              <span class="stat-label">Pending Approval</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Cards Row -->
+        <div class="summary-row">
+          <!-- Leave Summary -->
+          <div class="hris-card summary-card">
+            <div class="card-header">
+              <h3><i class="pi pi-calendar"></i> Pengajuan Cuti</h3>
+            </div>
+            <div class="card-body">
+              <div class="summary-stats">
+                <div class="summary-item">
+                  <span class="value">{{ stats()!.leaveSummary.totalPengajuan }}</span>
+                  <span class="label">Total</span>
+                </div>
+                <div class="summary-item success">
+                  <span class="value">{{ stats()!.leaveSummary.disetujui }}</span>
+                  <span class="label">Disetujui</span>
+                </div>
+                <div class="summary-item warning">
+                  <span class="value">{{ stats()!.leaveSummary.menunggu }}</span>
+                  <span class="label">Pending</span>
+                </div>
+                <div class="summary-item danger">
+                  <span class="value">{{ stats()!.leaveSummary.ditolak }}</span>
+                  <span class="label">Ditolak</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Overtime Summary -->
+          <div class="hris-card summary-card">
+            <div class="card-header">
+              <h3><i class="pi pi-clock"></i> Pengajuan Lembur</h3>
+            </div>
+            <div class="card-body">
+              <div class="summary-stats">
+                <div class="summary-item">
+                  <span class="value">{{ stats()!.overtimeSummary.totalPengajuan }}</span>
+                  <span class="label">Total</span>
+                </div>
+                <div class="summary-item success">
+                  <span class="value">{{ stats()!.overtimeSummary.disetujui }}</span>
+                  <span class="label">Disetujui</span>
+                </div>
+                <div class="summary-item info">
+                  <span class="value">{{ stats()!.overtimeSummary.totalJamLembur }} jam</span>
+                  <span class="label">Total Jam</span>
+                </div>
+                <div class="summary-item primary">
+                  <span class="value">{{ formatCurrency(stats()!.overtimeSummary.totalBiaya) }}</span>
+                  <span class="label">Total Biaya</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Charts Grid -->
+      @if (isAdminOrHR && stats()) {
+        <div class="charts-grid">
+          <!-- Attendance Pie Chart -->
+          <div class="hris-card chart-card">
+            <div class="card-header">
+              <h3><i class="pi pi-chart-pie"></i> Distribusi Kehadiran</h3>
+            </div>
+            <div class="card-body chart-container">
+              <p-chart type="pie" [data]="attendanceChartData" [options]="attendanceChartOptions" />
+            </div>
+          </div>
+
+          <!-- Late Ranking Chart -->
+          <div class="hris-card chart-card">
+            <div class="card-header">
+              <h3><i class="pi pi-exclamation-circle"></i> Top Karyawan Terlambat</h3>
+            </div>
+            <div class="card-body chart-container">
+              @if (topLateEmployees().length > 0) {
+                <p-chart type="bar" [data]="lateRankingChartData" [options]="barChartOptions" height="250px" />
+              } @else {
+                <div class="empty-chart">
+                  <i class="pi pi-check-circle"></i>
+                  <p>Tidak ada data keterlambatan</p>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Overtime Ranking Chart -->
+          <div class="hris-card chart-card">
+            <div class="card-header">
+              <h3><i class="pi pi-clock"></i> Top Karyawan Lembur</h3>
+            </div>
+            <div class="card-body chart-container">
+              @if (topOvertimeEmployees().length > 0) {
+                <p-chart type="bar" [data]="overtimeRankingChartData" [options]="barChartOptions" height="250px" />
+              } @else {
+                <div class="empty-chart">
+                  <i class="pi pi-info-circle"></i>
+                  <p>Tidak ada data lembur</p>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Rankings Tables -->
+        <div class="rankings-grid">
+          <!-- Top Late Table -->
+          <div class="hris-card">
+            <div class="card-header">
+              <h3>Detail Keterlambatan</h3>
+            </div>
+            <div class="card-body">
+              <p-table [value]="topLateEmployees()" [tableStyle]="{ 'min-width': '100%' }">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th>Nama</th>
+                    <th>NIK</th>
+                    <th>Jumlah</th>
+                    <th>Total Menit</th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-emp>
+                  <tr>
+                    <td>{{ emp.nama }}</td>
+                    <td>{{ emp.nik }}</td>
+                    <td>{{ emp.jumlahTerlambat }}x</td>
+                    <td>
+                      <p-tag [value]="emp.totalMenitTerlambat + ' menit'" severity="warn" />
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr>
+                    <td colspan="4" class="text-center text-muted">
+                      Tidak ada data keterlambatan
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </div>
+
+          <!-- Top Overtime Table -->
+          <div class="hris-card">
+            <div class="card-header">
+              <h3>Detail Lembur</h3>
+            </div>
+            <div class="card-body">
+              <p-table [value]="topOvertimeEmployees()" [tableStyle]="{ 'min-width': '100%' }">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th>Nama</th>
+                    <th>Hari Lembur</th>
+                    <th>Total Jam</th>
+                    <th>Total Biaya</th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-emp>
+                  <tr>
+                    <td>{{ emp.nama }}</td>
+                    <td>{{ emp.jumlahHariLembur }} hari</td>
+                    <td>{{ emp.totalJamLembur }} jam</td>
+                    <td>
+                      <p-tag [value]="formatCurrency(emp.totalBiayaLembur)" severity="info" />
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr>
+                    <td colspan="4" class="text-center text-muted">
+                      Tidak ada data lembur
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Employee Quick Stats (for regular employees) -->
+      @if (!isAdminOrHR) {
+        <div class="employee-stats">
+          <div class="hris-card">
+            <div class="card-header">
+              <h3>Sisa Cuti Anda</h3>
+            </div>
+            <div class="card-body">
+              <div class="leave-balance">
+                <div class="balance-item">
+                  <span class="balance-value">12</span>
+                  <span class="balance-label">Cuti Tahunan</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Loading Overlay -->
+      @if (loading()) {
+        <div class="loading-overlay">
+          <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+          <p>Memuat data...</p>
+        </div>
+      }
     </div>
   </div>
-
-  <!-- Filter Section -->
-  @if (isAdminOrHR) {
-    <div class="filter-section">
-      <div class="filter-item">
-        <label>Bulan</label>
-        <input 
-          type="month" 
-          [value]="selectedMonth | date:'yyyy-MM'"
-          (change)="onMonthChange($event)"
-          class="month-picker"
-        />
-      </div>
-    </div>
-  }
-
-  <!-- Stats Cards -->
-  @if (isAdminOrHR && stats()) {
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon blue">
-          <i class="pi pi-users"></i>
-        </div>
-        <div class="stat-content">
-          <span class="stat-value">{{ stats()!.totalKaryawan }}</span>
-          <span class="stat-label">Total Karyawan</span>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-icon green">
-          <i class="pi pi-check-circle"></i>
-        </div>
-        <div class="stat-content">
-          <span class="stat-value">{{ stats()!.attendanceSummary.totalHadir }}</span>
-          <span class="stat-label">Total Hadir</span>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-icon orange">
-          <i class="pi pi-exclamation-triangle"></i>
-        </div>
-        <div class="stat-content">
-          <span class="stat-value">{{ stats()!.attendanceSummary.totalTerlambat }}</span>
-          <span class="stat-label">Total Terlambat</span>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-icon purple">
-          <i class="pi pi-clock"></i>
-        </div>
-        <div class="stat-content">
-          <span class="stat-value">{{ stats()!.overtimeSummary.menunggu }}</span>
-          <span class="stat-label">Pending Approval</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Summary Cards Row -->
-    <div class="summary-row">
-      <!-- Leave Summary -->
-      <div class="hris-card summary-card">
-        <div class="card-header">
-          <h3><i class="pi pi-calendar"></i> Pengajuan Cuti</h3>
-        </div>
-        <div class="card-body">
-          <div class="summary-stats">
-            <div class="summary-item">
-              <span class="value">{{ stats()!.leaveSummary.totalPengajuan }}</span>
-              <span class="label">Total</span>
-            </div>
-            <div class="summary-item success">
-              <span class="value">{{ stats()!.leaveSummary.disetujui }}</span>
-              <span class="label">Disetujui</span>
-            </div>
-            <div class="summary-item warning">
-              <span class="value">{{ stats()!.leaveSummary.menunggu }}</span>
-              <span class="label">Pending</span>
-            </div>
-            <div class="summary-item danger">
-              <span class="value">{{ stats()!.leaveSummary.ditolak }}</span>
-              <span class="label">Ditolak</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Overtime Summary -->
-      <div class="hris-card summary-card">
-        <div class="card-header">
-          <h3><i class="pi pi-clock"></i> Pengajuan Lembur</h3>
-        </div>
-        <div class="card-body">
-          <div class="summary-stats">
-            <div class="summary-item">
-              <span class="value">{{ stats()!.overtimeSummary.totalPengajuan }}</span>
-              <span class="label">Total</span>
-            </div>
-            <div class="summary-item success">
-              <span class="value">{{ stats()!.overtimeSummary.disetujui }}</span>
-              <span class="label">Disetujui</span>
-            </div>
-            <div class="summary-item info">
-              <span class="value">{{ stats()!.overtimeSummary.totalJamLembur }} jam</span>
-              <span class="label">Total Jam</span>
-            </div>
-            <div class="summary-item primary">
-              <span class="value">{{ formatCurrency(stats()!.overtimeSummary.totalBiaya) }}</span>
-              <span class="label">Total Biaya</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Charts Grid -->
-  @if (isAdminOrHR && stats()) {
-    <div class="charts-grid">
-      <!-- Attendance Pie Chart -->
-      <div class="hris-card chart-card">
-        <div class="card-header">
-          <h3><i class="pi pi-chart-pie"></i> Distribusi Kehadiran</h3>
-        </div>
-        <div class="card-body chart-container">
-          <p-chart type="pie" [data]="attendanceChartData" [options]="attendanceChartOptions" />
-        </div>
-      </div>
-
-      <!-- Late Ranking Chart -->
-      <div class="hris-card chart-card">
-        <div class="card-header">
-          <h3><i class="pi pi-exclamation-circle"></i> Top Karyawan Terlambat</h3>
-        </div>
-        <div class="card-body chart-container">
-          @if (topLateEmployees().length > 0) {
-            <p-chart type="bar" [data]="lateRankingChartData" [options]="barChartOptions" height="250px" />
-          } @else {
-            <div class="empty-chart">
-              <i class="pi pi-check-circle"></i>
-              <p>Tidak ada data keterlambatan</p>
-            </div>
-          }
-        </div>
-      </div>
-
-      <!-- Overtime Ranking Chart -->
-      <div class="hris-card chart-card">
-        <div class="card-header">
-          <h3><i class="pi pi-clock"></i> Top Karyawan Lembur</h3>
-        </div>
-        <div class="card-body chart-container">
-          @if (topOvertimeEmployees().length > 0) {
-            <p-chart type="bar" [data]="overtimeRankingChartData" [options]="barChartOptions" height="250px" />
-          } @else {
-            <div class="empty-chart">
-              <i class="pi pi-info-circle"></i>
-              <p>Tidak ada data lembur</p>
-            </div>
-          }
-        </div>
-      </div>
-    </div>
-
-    <!-- Top Rankings Tables -->
-    <div class="rankings-grid">
-      <!-- Top Late Table -->
-      <div class="hris-card">
-        <div class="card-header">
-          <h3>Detail Keterlambatan</h3>
-        </div>
-        <div class="card-body">
-          <p-table [value]="topLateEmployees()" [tableStyle]="{ 'min-width': '100%' }">
-            <ng-template pTemplate="header">
-              <tr>
-                <th>Nama</th>
-                <th>NIK</th>
-                <th>Jumlah</th>
-                <th>Total Menit</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-emp>
-              <tr>
-                <td>{{ emp.nama }}</td>
-                <td>{{ emp.nik }}</td>
-                <td>{{ emp.jumlahTerlambat }}x</td>
-                <td>
-                  <p-tag [value]="emp.totalMenitTerlambat + ' menit'" severity="warn" />
-                </td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr>
-                <td colspan="4" class="text-center text-muted">
-                  Tidak ada data keterlambatan
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </div>
-      </div>
-
-      <!-- Top Overtime Table -->
-      <div class="hris-card">
-        <div class="card-header">
-          <h3>Detail Lembur</h3>
-        </div>
-        <div class="card-body">
-          <p-table [value]="topOvertimeEmployees()" [tableStyle]="{ 'min-width': '100%' }">
-            <ng-template pTemplate="header">
-              <tr>
-                <th>Nama</th>
-                <th>Hari Lembur</th>
-                <th>Total Jam</th>
-                <th>Total Biaya</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-emp>
-              <tr>
-                <td>{{ emp.nama }}</td>
-                <td>{{ emp.jumlahHariLembur }} hari</td>
-                <td>{{ emp.totalJamLembur }} jam</td>
-                <td>
-                  <p-tag [value]="formatCurrency(emp.totalBiayaLembur)" severity="info" />
-                </td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr>
-                <td colspan="4" class="text-center text-muted">
-                  Tidak ada data lembur
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Employee Quick Stats (for regular employees) -->
-  @if (!isAdminOrHR) {
-    <div class="employee-stats">
-      <div class="hris-card">
-        <div class="card-header">
-          <h3>Sisa Cuti Anda</h3>
-        </div>
-        <div class="card-body">
-          <div class="leave-balance">
-            <div class="balance-item">
-              <span class="balance-value">12</span>
-              <span class="balance-label">Cuti Tahunan</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Loading Overlay -->
-  @if (loading()) {
-    <div class="loading-overlay">
-      <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-      <p>Memuat data...</p>
-    </div>
-  }
-</div>
-</div>
 </div>

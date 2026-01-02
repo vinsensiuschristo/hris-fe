@@ -1,4 +1,4 @@
-<div class="page-container"><div class="page-content">import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -20,45 +20,49 @@ import { Role } from '../../../../core/models';
   ],
   providers: [MessageService, ConfirmationService],
   template: `
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">Data Role</h1>
-        <p class="page-subtitle">Kelola role pengguna sistem</p>
-      </div>
-      <button pButton label="Tambah Role" icon="pi pi-plus" (click)="openDialog()"></button>
-    </div>
-    
-    <div class="hris-card">
-      @if (loading()) {
-        <div class="loading-container"><i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i><p>Memuat data...</p></div>
-      } @else {
-        <p-table [value]="items()" [paginator]="true" [rows]="10" [rowHover]="true">
-          <ng-template pTemplate="header"><tr><th>Nama Role</th><th style="width: 120px">Aksi</th></tr></ng-template>
-          <ng-template pTemplate="body" let-item>
-            <tr>
-              <td>{{ item.namaRole }}</td>
-              <td>
-                <button pButton icon="pi pi-pencil" [text]="true" [rounded]="true" severity="info" (click)="editItem(item)"></button>
-                <button pButton icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" (click)="confirmDelete(item)"></button>
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage"><tr><td colspan="2" class="text-center p-4"><p class="text-muted">Belum ada data</p></td></tr></ng-template>
-        </p-table>
-      }
-    </div>
+    <div class="page-container">
+      <div class="page-content">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Data Role</h1>
+            <p class="page-subtitle">Kelola role pengguna sistem</p>
+          </div>
+          <button pButton label="Tambah Role" icon="pi pi-plus" (click)="openDialog()"></button>
+        </div>
 
-    <p-dialog [header]="isEditMode ? 'Edit Role' : 'Tambah Role'" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '400px' }">
-      <div class="form-group">
-        <label>Nama Role</label>
-        <input pInputText [(ngModel)]="formData.namaRole" placeholder="Contoh: ADMIN" style="width: 100%" />
+        <div class="hris-card">
+          @if (loading()) {
+            <div class="loading-container"><i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i><p>Memuat data...</p></div>
+          } @else {
+            <p-table [value]="items()" [paginator]="true" [rows]="10" [rowHover]="true">
+              <ng-template pTemplate="header"><tr><th>Nama Role</th><th style="width: 120px">Aksi</th></tr></ng-template>
+              <ng-template pTemplate="body" let-item>
+                <tr>
+                  <td>{{ item.namaRole }}</td>
+                  <td>
+                    <button pButton icon="pi pi-pencil" [text]="true" [rounded]="true" severity="info" (click)="editItem(item)"></button>
+                    <button pButton icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" (click)="confirmDelete(item)"></button>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage"><tr><td colspan="2" class="text-center p-4"><p class="text-muted">Belum ada data</p></td></tr></ng-template>
+            </p-table>
+          }
+        </div>
+    
+        <p-dialog [header]="isEditMode ? 'Edit Role' : 'Tambah Role'" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '400px' }">
+          <div class="form-group">
+            <label>Nama Role</label>
+            <input pInputText [(ngModel)]="formData.namaRole" placeholder="Contoh: ADMIN" style="width: 100%" />
+          </div>
+          <ng-template pTemplate="footer">
+            <button pButton label="Batal" [text]="true" severity="secondary" (click)="dialogVisible = false"></button>
+            <button pButton [label]="isEditMode ? 'Simpan' : 'Tambah'" icon="pi pi-save" (click)="saveItem()" [loading]="submitting()"></button>
+          </ng-template>
+        </p-dialog>
+        <p-toast /><p-confirmDialog />
       </div>
-      <ng-template pTemplate="footer">
-        <button pButton label="Batal" [text]="true" severity="secondary" (click)="dialogVisible = false"></button>
-        <button pButton [label]="isEditMode ? 'Simpan' : 'Tambah'" icon="pi pi-save" (click)="saveItem()" [loading]="submitting()"></button>
-      </ng-template>
-    </p-dialog>
-    <p-toast /><p-confirmDialog />
+    </div>
   `,
   styles: [`.loading-container{display:flex;flex-direction:column;align-items:center;padding:3rem;color:var(--hris-gray-500)}.text-muted{color:var(--hris-gray-500)}.form-group{margin-bottom:1rem}.form-group label{display:block;margin-bottom:.5rem;font-weight:500}`]
 })
@@ -107,4 +111,3 @@ export class RoleListComponent implements OnInit {
     });
   }
 }
-</div></div>

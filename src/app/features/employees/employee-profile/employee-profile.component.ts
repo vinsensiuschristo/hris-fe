@@ -1,4 +1,4 @@
-<div class="page-container"><div class="page-content">import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
@@ -15,76 +15,80 @@ import { Employee } from '../../../core/models';
   imports: [CommonModule, RouterModule, ButtonDirective, Tag, ToastModule],
   providers: [MessageService],
   template: `
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">Profil Karyawan</h1>
-        <p class="page-subtitle">Detail informasi karyawan</p>
-      </div>
-      <div class="header-actions">
-        @if (isAdminOrHR && employee()) {
-          <a [routerLink]="['/employees', employee()!.id, 'edit']" pButton label="Edit" icon="pi pi-pencil" [outlined]="true"></a>
+    <div class="page-container">
+      <div class="page-content">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Profil Karyawan</h1>
+            <p class="page-subtitle">Detail informasi karyawan</p>
+          </div>
+          <div class="header-actions">
+            @if (isAdminOrHR && employee()) {
+              <a [routerLink]="['/employees', employee()!.id, 'edit']" pButton label="Edit" icon="pi pi-pencil" [outlined]="true"></a>
+            }
+            <a routerLink="/employees" pButton label="Kembali" icon="pi pi-arrow-left" severity="secondary" [outlined]="true"></a>
+          </div>
+        </div>
+
+        @if (loading()) {
+          <div class="hris-card loading-container">
+            <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+            <p>Memuat data...</p>
+          </div>
+        } @else if (employee()) {
+          <div class="profile-grid">
+            <!-- Main Info Card -->
+            <div class="hris-card profile-card">
+              <div class="profile-header">
+                <div class="avatar">{{ getInitials(employee()!.nama) }}</div>
+                <div class="profile-info">
+                  <h2>{{ employee()!.nama }}</h2>
+                  <p class="text-muted">{{ employee()!.email }}</p>
+                  <p-tag [value]="employee()!.nik" severity="info" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Details Card -->
+            <div class="hris-card">
+              <h3 class="card-title">Informasi Pekerjaan</h3>
+              <div class="details-grid">
+                <div class="detail-item">
+                  <label>NIK</label>
+                  <span>{{ employee()!.nik }}</span>
+                </div>
+                <div class="detail-item">
+                  <label>Department</label>
+                  <span>{{ employee()!.departemen?.namaDepartment || 'Belum ditentukan' }}</span>
+                </div>
+                <div class="detail-item">
+                  <label>Jabatan</label>
+                  <span>{{ employee()!.jabatan?.namaJabatan || 'Belum ditentukan' }}</span>
+                </div>
+                <div class="detail-item">
+                  <label>Sisa Cuti</label>
+                  <span>
+                    <p-tag
+                      [value]="employee()!.sisaCuti + ' hari'"
+                      [severity]="employee()!.sisaCuti > 5 ? 'success' : employee()!.sisaCuti > 0 ? 'warn' : 'danger'"
+                    />
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        } @else {
+          <div class="hris-card error-container">
+            <i class="pi pi-exclamation-circle" style="font-size: 3rem; color: var(--hris-danger)"></i>
+            <h3>Data tidak ditemukan</h3>
+            <p class="text-muted">Karyawan dengan ID tersebut tidak ditemukan</p>
+            <a routerLink="/employees" pButton label="Kembali ke Daftar" icon="pi pi-arrow-left"></a>
+          </div>
         }
-        <a routerLink="/employees" pButton label="Kembali" icon="pi pi-arrow-left" severity="secondary" [outlined]="true"></a>
+
+        <p-toast />
       </div>
     </div>
-    
-    @if (loading()) {
-      <div class="hris-card loading-container">
-        <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-        <p>Memuat data...</p>
-      </div>
-    } @else if (employee()) {
-      <div class="profile-grid">
-        <!-- Main Info Card -->
-        <div class="hris-card profile-card">
-          <div class="profile-header">
-            <div class="avatar">{{ getInitials(employee()!.nama) }}</div>
-            <div class="profile-info">
-              <h2>{{ employee()!.nama }}</h2>
-              <p class="text-muted">{{ employee()!.email }}</p>
-              <p-tag [value]="employee()!.nik" severity="info" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Details Card -->
-        <div class="hris-card">
-          <h3 class="card-title">Informasi Pekerjaan</h3>
-          <div class="details-grid">
-            <div class="detail-item">
-              <label>NIK</label>
-              <span>{{ employee()!.nik }}</span>
-            </div>
-            <div class="detail-item">
-              <label>Department</label>
-              <span>{{ employee()!.departemen?.namaDepartment || 'Belum ditentukan' }}</span>
-            </div>
-            <div class="detail-item">
-              <label>Jabatan</label>
-              <span>{{ employee()!.jabatan?.namaJabatan || 'Belum ditentukan' }}</span>
-            </div>
-            <div class="detail-item">
-              <label>Sisa Cuti</label>
-              <span>
-                <p-tag 
-                  [value]="employee()!.sisaCuti + ' hari'" 
-                  [severity]="employee()!.sisaCuti > 5 ? 'success' : employee()!.sisaCuti > 0 ? 'warn' : 'danger'"
-                />
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    } @else {
-      <div class="hris-card error-container">
-        <i class="pi pi-exclamation-circle" style="font-size: 3rem; color: var(--hris-danger)"></i>
-        <h3>Data tidak ditemukan</h3>
-        <p class="text-muted">Karyawan dengan ID tersebut tidak ditemukan</p>
-        <a routerLink="/employees" pButton label="Kembali ke Daftar" icon="pi pi-arrow-left"></a>
-      </div>
-    }
-
-    <p-toast />
   `,
   styles: [`
     .header-actions { display: flex; gap: 0.5rem; }
@@ -166,4 +170,3 @@ export class EmployeeProfileComponent implements OnInit {
     return nama.substring(0, 2).toUpperCase();
   }
 }
-</div></div>

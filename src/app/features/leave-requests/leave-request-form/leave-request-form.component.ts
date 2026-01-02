@@ -1,4 +1,4 @@
-<div class="page-container"><div class="page-content">import { Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -23,6 +23,8 @@ import { NotificationService } from '../../../core/services/notification.service
     Card
   ],
   template: `
+<div class="page-container">
+  <div class="page-content">
     <div class="page-header">
       <div>
         <h1 class="page-title">Ajukan Cuti</h1>
@@ -83,6 +85,8 @@ import { NotificationService } from '../../../core/services/notification.service
         </div>
       </form>
     </div>
+    </div>
+</div>
   `,
   styles: [`
     .w-full { width: 100%; }
@@ -126,4 +130,3 @@ export class LeaveRequestFormComponent {
     }, 1000);
   }
 }
-</div></div>

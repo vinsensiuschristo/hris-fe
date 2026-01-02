@@ -1,4 +1,4 @@
-<div class="page-container"><div class="page-content">import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TableModule } from 'primeng/table';
@@ -27,85 +27,89 @@ import { LeaveRequest } from '../../../core/models';
   ],
   providers: [MessageService, ConfirmationService],
   template: `
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">Pengajuan Cuti</h1>
-        <p class="page-subtitle">{{ isAdminOrHR ? 'Kelola pengajuan cuti karyawan' : 'Daftar pengajuan cuti Anda' }}</p>
-      </div>
-      <a routerLink="new" pButton label="Ajukan Cuti Baru" icon="pi pi-plus"></a>
-    </div>
-    
-    <div class="hris-card">
-      @if (loading()) {
-        <div class="loading-container">
-          <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-          <p>Memuat data...</p>
+    <div class="page-container">
+      <div class="page-content">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Pengajuan Cuti</h1>
+            <p class="page-subtitle">{{ isAdminOrHR ? 'Kelola pengajuan cuti karyawan' : 'Daftar pengajuan cuti Anda' }}</p>
+          </div>
+          <a routerLink="new" pButton label="Ajukan Cuti Baru" icon="pi pi-plus"></a>
         </div>
-      } @else {
-        <p-table 
-          [value]="leaveRequests()" 
-          [paginator]="true" 
-          [rows]="10"
-          [rowHover]="true"
-          [showCurrentPageReport]="true"
-          currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords} pengajuan"
-        >
-          <ng-template pTemplate="header">
-            <tr>
-              @if (isAdminOrHR) {
-                <th>Karyawan</th>
-              }
-              <th>Tipe Cuti</th>
-              <th>Tanggal Mulai</th>
-              <th>Tanggal Selesai</th>
-              <th>Total Hari</th>
-              <th>Alasan</th>
-              <th>Status</th>
-              <th>Aksi</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-request>
-            <tr>
-              @if (isAdminOrHR) {
-                <td>
-                  <div class="fw-semibold">{{ request.karyawan?.nama }}</div>
-                  <div class="text-muted small">{{ request.karyawan?.nik }}</div>
-                </td>
-              }
-              <td>{{ request.jenisCuti?.namaJenis }}</td>
-              <td>{{ request.tglMulai }}</td>
-              <td>{{ request.tglSelesai }}</td>
-              <td>{{ request.jumlahHari }} hari</td>
-              <td>{{ request.alasan || '-' }}</td>
-              <td>
-                <p-tag [value]="getStatusLabel(request.status?.namaStatus)" [severity]="getStatusSeverity(request.status?.namaStatus)" />
-              </td>
-              <td>
-                <a [routerLink]="[request.id]" pButton icon="pi pi-eye" [text]="true" [rounded]="true" severity="info"></a>
-                @if (isAdminOrHR && request.status?.namaStatus === 'MENUNGGU_PERSETUJUAN') {
-                  <button pButton icon="pi pi-check" [text]="true" [rounded]="true" severity="success" (click)="approveRequest(request)"></button>
-                  <button pButton icon="pi pi-times" [text]="true" [rounded]="true" severity="danger" (click)="rejectRequest(request)"></button>
-                }
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td [attr.colspan]="isAdminOrHR ? 8 : 7" class="text-center p-4">
-                <div class="empty-state">
-                  <i class="pi pi-calendar empty-icon"></i>
-                  <h4 class="empty-title">Belum ada pengajuan cuti</h4>
-                  <p class="empty-description">Klik tombol "Ajukan Cuti Baru" untuk membuat pengajuan</p>
-                </div>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      }
-    </div>
 
-    <p-toast />
-    <p-confirmDialog />
+        <div class="hris-card">
+          @if (loading()) {
+            <div class="loading-container">
+              <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+              <p>Memuat data...</p>
+            </div>
+          } @else {
+            <p-table
+              [value]="leaveRequests()"
+              [paginator]="true"
+              [rows]="10"
+              [rowHover]="true"
+              [showCurrentPageReport]="true"
+              currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords} pengajuan"
+            >
+              <ng-template pTemplate="header">
+                <tr>
+                  @if (isAdminOrHR) {
+                    <th>Karyawan</th>
+                  }
+                  <th>Tipe Cuti</th>
+                  <th>Tanggal Mulai</th>
+                  <th>Tanggal Selesai</th>
+                  <th>Total Hari</th>
+                  <th>Alasan</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-request>
+                <tr>
+                  @if (isAdminOrHR) {
+                    <td>
+                      <div class="fw-semibold">{{ request.karyawan?.nama }}</div>
+                      <div class="text-muted small">{{ request.karyawan?.nik }}</div>
+                    </td>
+                  }
+                  <td>{{ request.jenisCuti?.namaJenis }}</td>
+                  <td>{{ request.tglMulai }}</td>
+                  <td>{{ request.tglSelesai }}</td>
+                  <td>{{ request.jumlahHari }} hari</td>
+                  <td>{{ request.alasan || '-' }}</td>
+                  <td>
+                    <p-tag [value]="getStatusLabel(request.status?.namaStatus)" [severity]="getStatusSeverity(request.status?.namaStatus)" />
+                  </td>
+                  <td>
+                    <a [routerLink]="[request.id]" pButton icon="pi pi-eye" [text]="true" [rounded]="true" severity="info"></a>
+                    @if (isAdminOrHR && request.status?.namaStatus === 'MENUNGGU_PERSETUJUAN') {
+                      <button pButton icon="pi pi-check" [text]="true" [rounded]="true" severity="success" (click)="approveRequest(request)"></button>
+                      <button pButton icon="pi pi-times" [text]="true" [rounded]="true" severity="danger" (click)="rejectRequest(request)"></button>
+                    }
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td [attr.colspan]="isAdminOrHR ? 8 : 7" class="text-center p-4">
+                    <div class="empty-state">
+                      <i class="pi pi-calendar empty-icon"></i>
+                      <h4 class="empty-title">Belum ada pengajuan cuti</h4>
+                      <p class="empty-description">Klik tombol "Ajukan Cuti Baru" untuk membuat pengajuan</p>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          }
+        </div>
+
+        <p-toast />
+        <p-confirmDialog />
+      </div>
+    </div>
   `,
   styles: [`
     .loading-container {
@@ -244,4 +248,3 @@ export class LeaveRequestListComponent implements OnInit {
     });
   }
 }
-</div></div>

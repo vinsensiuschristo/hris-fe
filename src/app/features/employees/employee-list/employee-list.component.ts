@@ -28,85 +28,81 @@ import { Employee } from '../../../core/models';
   ],
   providers: [ConfirmationService, MessageService],
   template: `
-    <div class="page-container">
-      <div class="page-content">
-        <div class="page-header">
-          <div>
-            <h1 class="page-title">Data Karyawan</h1>
-            <p class="page-subtitle">Kelola data karyawan perusahaan</p>
-          </div>
-          <a routerLink="new" pButton label="Tambah Karyawan" icon="pi pi-plus"></a>
-        </div>
-
-        <div class="hris-card">
-          @if (loading()) {
-            <div class="loading-container">
-              <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-              <p>Memuat data...</p>
-            </div>
-          } @else {
-            <p-table
-              [value]="employees()"
-              [paginator]="true"
-              [rows]="10"
-              [globalFilterFields]="['nama', 'nik', 'email']"
-              [rowHover]="true"
-              [showCurrentPageReport]="true"
-              currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords} karyawan"
-            >
-              <ng-template pTemplate="header">
-                <tr>
-                  <th>Karyawan</th>
-                  <th>NIK</th>
-                  <th>Departemen</th>
-                  <th>Jabatan</th>
-                  <th>Sisa Cuti</th>
-                  <th>Aksi</th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-employee>
-                <tr>
-                  <td>
-                    <div class="d-flex align-items-center gap-2">
-                      <p-avatar [label]="getInitials(employee.nama)" shape="circle" />
-                      <div>
-                        <div class="fw-semibold">{{ employee.nama }}</div>
-                        <div class="text-muted small">{{ employee.email }}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>{{ employee.nik }}</td>
-                  <td>{{ employee.departemen?.namaDepartment || '-' }}</td>
-                  <td>{{ employee.jabatan?.namaJabatan || '-' }}</td>
-                  <td>
-                    <p-tag
-                      [value]="employee.sisaCuti + ' hari'"
-                      [severity]="employee.sisaCuti > 5 ? 'success' : employee.sisaCuti > 0 ? 'warn' : 'danger'"
-                    />
-                  </td>
-                  <td>
-                    <a [routerLink]="[employee.id]" pButton icon="pi pi-eye" [text]="true" [rounded]="true" severity="info"></a>
-                    <a [routerLink]="[employee.id, 'edit']" pButton icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary"></a>
-                    <button pButton icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" (click)="confirmDelete(employee)"></button>
-                  </td>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="emptymessage">
-                <tr>
-                  <td colspan="6" class="text-center py-4">
-                    <i class="pi pi-users" style="font-size: 2rem; color: var(--hris-gray-400)"></i>
-                    <p class="text-muted mt-2">Belum ada data karyawan</p>
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
-          }
-        </div>
-
-        <p-confirmDialog />
-        <p-toast />
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Data Karyawan</h1>
+        <p class="page-subtitle">Kelola data karyawan perusahaan</p>
       </div>
+      <a routerLink="new" pButton label="Tambah Karyawan" icon="pi pi-plus"></a>
     </div>
+
+    <div class="hris-card">
+      @if (loading()) {
+        <div class="loading-container">
+          <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+          <p>Memuat data...</p>
+        </div>
+      } @else {
+        <p-table
+          [value]="employees()"
+          [paginator]="true"
+          [rows]="10"
+          [globalFilterFields]="['nama', 'nik', 'email']"
+          [rowHover]="true"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords} karyawan"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Karyawan</th>
+              <th>NIK</th>
+              <th>Departemen</th>
+              <th>Jabatan</th>
+              <th>Sisa Cuti</th>
+              <th>Aksi</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-employee>
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <p-avatar [label]="getInitials(employee.nama)" shape="circle" />
+                  <div>
+                    <div class="fw-semibold">{{ employee.nama }}</div>
+                    <div class="text-muted small">{{ employee.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ employee.nik }}</td>
+              <td>{{ employee.departemen?.namaDepartment || '-' }}</td>
+              <td>{{ employee.jabatan?.namaJabatan || '-' }}</td>
+              <td>
+                <p-tag
+                  [value]="employee.sisaCuti + ' hari'"
+                  [severity]="employee.sisaCuti > 5 ? 'success' : employee.sisaCuti > 0 ? 'warn' : 'danger'"
+                />
+              </td>
+              <td>
+                <a [routerLink]="[employee.id]" pButton icon="pi pi-eye" [text]="true" [rounded]="true" severity="info"></a>
+                <a [routerLink]="[employee.id, 'edit']" pButton icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary"></a>
+                <button pButton icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" (click)="confirmDelete(employee)"></button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="6" class="text-center py-4">
+                <i class="pi pi-users" style="font-size: 2rem; color: var(--hris-gray-400)"></i>
+                <p class="text-muted mt-2">Belum ada data karyawan</p>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </div>
+
+    <p-confirmDialog />
+    <p-toast />
   `,
   styles: [`
     .loading-container {

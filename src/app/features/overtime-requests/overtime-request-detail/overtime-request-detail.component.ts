@@ -7,16 +7,12 @@ import { RouterModule } from '@angular/router';
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="page-container">
-      <div class="page-content">
-        <div class="page-header">
-          <h1 class="page-title">Detail Pengajuan Lembur</h1>
-        </div>
-        <div class="hris-card">
-          <p>Detail pengajuan lembur akan ditampilkan di sini.</p>
-          <a routerLink="/overtime-requests" class="p-button p-button-text">Kembali</a>
-        </div>
-      </div>
+    <div class="page-header">
+      <h1 class="page-title">Detail Pengajuan Lembur</h1>
+    </div>
+    <div class="hris-card">
+      <p>Detail pengajuan lembur akan ditampilkan di sini.</p>
+      <a routerLink="/overtime-requests" class="p-button p-button-text">Kembali</a>
     </div>
   `
 })

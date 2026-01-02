@@ -24,8 +24,6 @@ import { Employee, EmployeeCreateRequest, EmployeeUpdateRequest } from '../../..
   ],
   providers: [MessageService],
   template: `
-<div class="page-container">
-  <div class="page-content">
     <!-- Access Denied -->
     @if (!isAdminOrHR) {
       <div class="access-denied">
@@ -151,9 +149,8 @@ import { Employee, EmployeeCreateRequest, EmployeeUpdateRequest } from '../../..
         }
       </div>
     }
-    </div>
+
     <p-toast />
-</div>
   `,
   styles: [`
     .access-denied {

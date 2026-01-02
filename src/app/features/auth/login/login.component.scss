@@ -221,13 +221,11 @@
   
   .form-group {
     margin-bottom: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
     
     label {
       display: block;
       font-weight: 600;
+      margin-bottom: 0.625rem;
       color: var(--hris-gray-700);
       font-size: 0.875rem;
       

@@ -7,39 +7,35 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="page-container">
-      <div class="page-content">
-        <div class="page-header">
-          <h1 class="page-title">Profil Saya</h1>
+    <div class="page-header">
+      <h1 class="page-title">Profil Saya</h1>
+    </div>
+
+    <div class="hris-card">
+      <div class="profile-header">
+        <div class="avatar">
+          {{ userInitials }}
         </div>
+        <div class="profile-info">
+          <h2>{{ displayName }}</h2>
+          <p class="text-muted">{{ userEmail }}</p>
+        </div>
+      </div>
 
-        <div class="hris-card">
-          <div class="profile-header">
-            <div class="avatar">
-              {{ userInitials }}
-            </div>
-            <div class="profile-info">
-              <h2>{{ displayName }}</h2>
-              <p class="text-muted">{{ userEmail }}</p>
-            </div>
-          </div>
+      <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--hris-gray-200);">
 
-          <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--hris-gray-200);">
-
-          <div class="profile-details">
-            <div class="detail-item">
-              <label>Username</label>
-              <span>{{ currentUser?.username }}</span>
-            </div>
-            <div class="detail-item">
-              <label>Email</label>
-              <span>{{ userEmail }}</span>
-            </div>
-            <div class="detail-item">
-              <label>Role</label>
-              <span>{{ userRole }}</span>
-            </div>
-          </div>
+      <div class="profile-details">
+        <div class="detail-item">
+          <label>Username</label>
+          <span>{{ currentUser?.username }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Email</label>
+          <span>{{ userEmail }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Role</label>
+          <span>{{ userRole }}</span>
         </div>
       </div>
     </div>

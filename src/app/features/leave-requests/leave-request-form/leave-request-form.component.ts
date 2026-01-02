@@ -23,8 +23,6 @@ import { NotificationService } from '../../../core/services/notification.service
     Card
   ],
   template: `
-<div class="page-container">
-  <div class="page-content">
     <div class="page-header">
       <div>
         <h1 class="page-title">Ajukan Cuti</h1>
@@ -85,8 +83,6 @@ import { NotificationService } from '../../../core/services/notification.service
         </div>
       </form>
     </div>
-    </div>
-</div>
   `,
   styles: [`
     .w-full { width: 100%; }

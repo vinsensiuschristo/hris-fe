@@ -25,8 +25,6 @@ import { OvertimeRequest } from '../../../core/models';
   ],
   providers: [MessageService, ConfirmationService],
   template: `
-<div class="page-container">
-  <div class="page-content">
     <div class="page-header">
       <div>
         <h1 class="page-title">Pengajuan Lembur</h1>
@@ -105,10 +103,9 @@ import { OvertimeRequest } from '../../../core/models';
         </p-table>
       }
     </div>
-    </div>
+
     <p-toast />
     <p-confirmDialog />
-</div>
   `,
   styles: [`
     .loading-container {

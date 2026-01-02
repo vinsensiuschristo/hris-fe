@@ -26,86 +26,82 @@ import { LeaveRequest } from '../../../core/models';
   ],
   providers: [MessageService, ConfirmationService],
   template: `
-    <div class="page-container">
-      <div class="page-content">
-        <div class="page-header">
-          <h1 class="page-title">Persetujuan Cuti</h1>
-          <p class="page-subtitle">Daftar pengajuan cuti yang menunggu persetujuan</p>
-        </div>
-
-        <div class="hris-card">
-          @if (loading()) {
-            <div class="loading-container">
-              <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-              <p>Memuat data...</p>
-            </div>
-          } @else {
-            <p-table [value]="pendingRequests()" [paginator]="true" [rows]="10" [rowHover]="true">
-              <ng-template pTemplate="header">
-                <tr>
-                  <th>Nama Karyawan</th>
-                  <th>Tipe Cuti</th>
-                  <th>Tanggal</th>
-                  <th>Total Hari</th>
-                  <th>Alasan</th>
-                  <th>Sisa Cuti</th>
-                  <th style="width: 120px">Aksi</th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-request>
-                <tr>
-                  <td>
-                    <div class="fw-semibold">{{ request.karyawan?.nama }}</div>
-                    <div class="text-muted small">{{ request.karyawan?.nik }}</div>
-                  </td>
-                  <td>{{ request.jenisCuti?.namaJenis }}</td>
-                  <td>{{ request.tglMulai }} - {{ request.tglSelesai }}</td>
-                  <td>{{ request.jumlahHari }} hari</td>
-                  <td>{{ request.alasan || '-' }}</td>
-                  <td>
-                    <p-tag
-                      [value]="request.karyawan?.sisaCuti + ' hari'"
-                      [severity]="request.karyawan?.sisaCuti >= request.jumlahHari ? 'success' : 'danger'"
-                    />
-                  </td>
-                  <td>
-                    <button
-                      pButton
-                      icon="pi pi-check"
-                      severity="success"
-                      [rounded]="true"
-                      [text]="true"
-                      pTooltip="Setujui"
-                      (click)="approveRequest(request)"
-                    ></button>
-                    <button
-                      pButton
-                      icon="pi pi-times"
-                      severity="danger"
-                      [rounded]="true"
-                      [text]="true"
-                      pTooltip="Tolak"
-                      (click)="rejectRequest(request)"
-                    ></button>
-                  </td>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="emptymessage">
-                <tr>
-                  <td colspan="7" class="text-center p-4">
-                    <i class="pi pi-check-circle" style="font-size: 2rem; color: var(--hris-success)"></i>
-                    <p class="mt-2">Tidak ada pengajuan cuti yang pending</p>
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
-          }
-        </div>
-
-        <p-toast />
-        <p-confirmDialog />
-      </div>
+    <div class="page-header">
+      <h1 class="page-title">Persetujuan Cuti</h1>
+      <p class="page-subtitle">Daftar pengajuan cuti yang menunggu persetujuan</p>
     </div>
+
+    <div class="hris-card">
+      @if (loading()) {
+        <div class="loading-container">
+          <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+          <p>Memuat data...</p>
+        </div>
+      } @else {
+        <p-table [value]="pendingRequests()" [paginator]="true" [rows]="10" [rowHover]="true">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Nama Karyawan</th>
+              <th>Tipe Cuti</th>
+              <th>Tanggal</th>
+              <th>Total Hari</th>
+              <th>Alasan</th>
+              <th>Sisa Cuti</th>
+              <th style="width: 120px">Aksi</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-request>
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ request.karyawan?.nama }}</div>
+                <div class="text-muted small">{{ request.karyawan?.nik }}</div>
+              </td>
+              <td>{{ request.jenisCuti?.namaJenis }}</td>
+              <td>{{ request.tglMulai }} - {{ request.tglSelesai }}</td>
+              <td>{{ request.jumlahHari }} hari</td>
+              <td>{{ request.alasan || '-' }}</td>
+              <td>
+                <p-tag
+                  [value]="request.karyawan?.sisaCuti + ' hari'"
+                  [severity]="request.karyawan?.sisaCuti >= request.jumlahHari ? 'success' : 'danger'"
+                />
+              </td>
+              <td>
+                <button
+                  pButton
+                  icon="pi pi-check"
+                  severity="success"
+                  [rounded]="true"
+                  [text]="true"
+                  pTooltip="Setujui"
+                  (click)="approveRequest(request)"
+                ></button>
+                <button
+                  pButton
+                  icon="pi pi-times"
+                  severity="danger"
+                  [rounded]="true"
+                  [text]="true"
+                  pTooltip="Tolak"
+                  (click)="rejectRequest(request)"
+                ></button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="7" class="text-center p-4">
+                <i class="pi pi-check-circle" style="font-size: 2rem; color: var(--hris-success)"></i>
+                <p class="mt-2">Tidak ada pengajuan cuti yang pending</p>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </div>
+
+    <p-toast />
+    <p-confirmDialog />
   `,
   styles: [`
     .loading-container { display: flex; flex-direction: column; align-items: center; padding: 3rem; color: var(--hris-gray-500); }

@@ -25,8 +25,6 @@ import { User, Role } from '../../../core/models';
   ],
   providers: [MessageService],
   template: `
-<div class="page-container">
-  <div class="page-content">
     <!-- Access Denied Check -->
     @if (!isAdmin) {
       <div class="access-denied">
@@ -120,9 +118,8 @@ import { User, Role } from '../../../core/models';
         }
       </div>
     }
-    </div>
+
     <p-toast />
-</div>
   `,
   styles: [`
     .access-denied {

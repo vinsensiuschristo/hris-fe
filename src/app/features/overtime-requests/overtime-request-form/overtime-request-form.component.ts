@@ -26,7 +26,7 @@ import { NotificationService } from '../../../core/services/notification.service
       <p class="page-subtitle">Isi formulir untuk mengajukan lembur</p>
     </div>
     
-    <div class="hris-card" style="max-width: 800px;">
+    <div class="hris-card form-card-lg">
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
         <div class="form-group">
           <label>Tanggal Lembur <span class="required">*</span></label>

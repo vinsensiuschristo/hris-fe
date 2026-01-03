@@ -1,252 +1,258 @@
-<div class="page-container"><div class="page-content">import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { ButtonDirective } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { OvertimeRequestService } from '../../../core/services/overtime-request.service';
-import { AuthService } from '../../../core/services/auth.service';
-import { OvertimeRequest } from '../../../core/models';
+import { Select } from 'primeng/select';
+import { Tooltip } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-overtime-request-list',
   standalone: true,
-  imports: [
-    CommonModule, 
-    RouterModule, 
-    TableModule, 
-    ButtonDirective, 
-    Tag,
-    ToastModule,
-    ConfirmDialogModule
-  ],
-  providers: [MessageService, ConfirmationService],
+  imports: [CommonModule, FormsModule, RouterModule, TableModule, ButtonDirective, InputText, Tag, Select, Tooltip],
   template: `
     <div class="page-header">
       <div>
         <h1 class="page-title">Pengajuan Lembur</h1>
-        <p class="page-subtitle">{{ isAdminOrHR ? 'Kelola pengajuan lembur karyawan' : 'Daftar pengajuan lembur Anda' }}</p>
+        <p class="page-subtitle">Daftar pengajuan lembur Anda</p>
       </div>
       <a routerLink="new" pButton label="Ajukan Lembur Baru" icon="pi pi-plus"></a>
     </div>
     
     <div class="hris-card">
-      @if (loading()) {
-        <div class="loading-container">
-          <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-          <p>Memuat data...</p>
+      <!-- Filter Section -->
+      <div class="table-header">
+        <div class="search-box">
+          <i class="pi pi-search"></i>
+          <input type="text" pInputText placeholder="Cari berdasarkan tanggal..." [(ngModel)]="searchText" (input)="applyFilters()" />
         </div>
-      } @else {
-        <p-table 
-          [value]="overtimeRequests()" 
-          [paginator]="true" 
-          [rows]="10"
-          [rowHover]="true"
-          [showCurrentPageReport]="true"
-          currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords} pengajuan"
-        >
-          <ng-template pTemplate="header">
-            <tr>
-              @if (isAdminOrHR) {
-                <th>Karyawan</th>
-              }
-              <th>Tanggal</th>
-              <th>Jam Mulai</th>
-              <th>Jam Selesai</th>
-              <th>Durasi</th>
-              <th>Estimasi Biaya</th>
-              <th>Status</th>
-              <th>Aksi</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-request>
-            <tr>
-              @if (isAdminOrHR) {
-                <td>
-                  <div class="fw-semibold">{{ request.karyawan?.nama }}</div>
-                  <div class="text-muted small">{{ request.karyawan?.nik }}</div>
-                </td>
-              }
-              <td>{{ request.tglLembur }}</td>
-              <td>{{ request.jamMulai }}</td>
-              <td>{{ request.jamSelesai }}</td>
-              <td>{{ request.durasi }} jam</td>
-              <td>
-                <span class="text-primary fw-semibold">{{ formatCurrency(request.estimasiBiaya) }}</span>
-              </td>
-              <td>
-                <p-tag [value]="getStatusLabel(request.status?.namaStatus)" [severity]="getStatusSeverity(request.status?.namaStatus)" />
-              </td>
-              <td>
-                <a [routerLink]="[request.id]" pButton icon="pi pi-eye" [text]="true" [rounded]="true" severity="info"></a>
-                @if (isAdminOrHR && request.status?.namaStatus === 'MENUNGGU_PERSETUJUAN') {
-                  <button pButton icon="pi pi-check" [text]="true" [rounded]="true" severity="success" (click)="approveRequest(request)"></button>
-                  <button pButton icon="pi pi-times" [text]="true" [rounded]="true" severity="danger" (click)="rejectRequest(request)"></button>
-                }
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td [attr.colspan]="isAdminOrHR ? 8 : 7" class="text-center p-4">
-                <div class="empty-state">
-                  <i class="pi pi-clock empty-icon"></i>
-                  <h4 class="empty-title">Belum ada pengajuan lembur</h4>
-                  <p class="empty-description">Klik tombol "Ajukan Lembur Baru" untuk membuat pengajuan</p>
-                </div>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      }
+        <div class="filter-group">
+          <p-select 
+            [options]="statusOptions" 
+            [(ngModel)]="selectedStatus"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Semua Status"
+            [showClear]="true"
+            (onChange)="applyFilters()"
+            [style]="{'width': '160px'}"
+          />
+          <span class="data-count">Total: {{ filteredRequests.length }} pengajuan</span>
+        </div>
+      </div>
+      
+      <p-table 
+        [value]="filteredRequests" 
+        [paginator]="true" 
+        [rows]="10" 
+        [rowsPerPageOptions]="[10, 20, 50]" 
+        [showCurrentPageReport]="true" 
+        currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
+        styleClass="p-datatable-sm"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Tanggal Lembur</th>
+            <th>Waktu</th>
+            <th style="width: 80px; text-align: center">Jam</th>
+            <th>Alasan</th>
+            <th style="width: 120px">Status</th>
+            <th style="width: 80px">Aksi</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-request>
+          <tr>
+            <td>
+              <div class="date-cell">
+                <i class="pi pi-calendar"></i>
+                <span>{{ request.date }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="time-range">
+                <span class="time-value">{{ request.startTime }}</span>
+                <i class="pi pi-arrow-right"></i>
+                <span class="time-value">{{ request.endTime }}</span>
+              </div>
+            </td>
+            <td class="text-center">
+              <span class="hours-badge">{{ request.totalHours }}</span>
+            </td>
+            <td>
+              <span class="reason-text" [pTooltip]="request.reason">{{ request.reason | slice:0:40 }}{{ request.reason.length > 40 ? '...' : '' }}</span>
+            </td>
+            <td>
+              <p-tag [value]="request.status" [severity]="getStatusSeverity(request.status)" />
+            </td>
+            <td>
+              <a [routerLink]="[request.id]" pButton icon="pi pi-eye" [text]="true" [rounded]="true" severity="info" pTooltip="Lihat Detail"></a>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6" class="text-center p-4">
+              <div class="empty-state">
+                <i class="pi pi-clock empty-icon"></i>
+                <h4 class="empty-title">Belum ada pengajuan lembur</h4>
+                <p class="empty-description">Klik tombol "Ajukan Lembur Baru" untuk membuat pengajuan</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
     </div>
-
-    <p-toast />
-    <p-confirmDialog />
   `,
   styles: [`
-    .loading-container {
+    .table-header {
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #E2E8F0;
+      background: #FAFAFA;
+    }
+    
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .data-count {
+      font-size: 0.875rem;
+      color: #64748B;
+    }
+    
+    .search-box {
+      position: relative;
+      width: 280px;
+      
+      i {
+        position: absolute;
+        left: 0.875rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94A3B8;
+      }
+      
+      input {
+        width: 100%;
+        padding-left: 2.5rem;
+      }
+    }
+    
+    .date-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #475569;
+      
+      i {
+        color: #8B5CF6;
+        font-size: 0.875rem;
+      }
+    }
+    
+    .time-range {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      
+      .time-value {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 600;
+        color: #1E293B;
+        background: #F1F5F9;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+      }
+      
+      i {
+        font-size: 0.625rem;
+        color: #94A3B8;
+      }
+    }
+    
+    .hours-badge {
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 3rem;
-      color: var(--hris-gray-500);
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+      color: white;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
     }
-    .fw-semibold { font-weight: 600; }
-    .small { font-size: 0.8125rem; }
-    .text-muted { color: var(--hris-gray-500); }
-    .text-primary { color: var(--hris-primary); }
-    .empty-state { padding: 2rem; text-align: center; }
-    .empty-icon { font-size: 3rem; color: var(--hris-gray-400); }
-    .empty-title { margin-top: 1rem; color: var(--hris-gray-700); }
-    .empty-description { color: var(--hris-gray-500); }
+    
+    .reason-text {
+      font-size: 0.875rem;
+      color: #64748B;
+    }
+    
+    .empty-state {
+      padding: 2rem;
+      text-align: center;
+      
+      .empty-icon {
+        font-size: 3rem;
+        color: #94A3B8;
+        margin-bottom: 1rem;
+      }
+      
+      .empty-title {
+        font-size: 1rem;
+        color: #475569;
+        margin-bottom: 0.25rem;
+      }
+      
+      .empty-description {
+        font-size: 0.875rem;
+        color: #94A3B8;
+      }
+    }
   `]
 })
-export class OvertimeRequestListComponent implements OnInit {
-  private overtimeRequestService = inject(OvertimeRequestService);
-  private authService = inject(AuthService);
-  private messageService = inject(MessageService);
-  private confirmationService = inject(ConfirmationService);
-
-  overtimeRequests = signal<OvertimeRequest[]>([]);
-  loading = signal<boolean>(true);
-
-  get isAdminOrHR(): boolean {
-    return this.authService.hasAnyRole(['ADMIN', 'HR']);
-  }
-
-  ngOnInit(): void {
-    this.loadOvertimeRequests();
-  }
-
-  loadOvertimeRequests(): void {
-    this.loading.set(true);
-    
-    this.overtimeRequestService.getAll().subscribe({
-      next: (data) => {
-        this.overtimeRequests.set(data);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        console.error('Error loading overtime requests:', err);
-        this.loading.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Gagal memuat data pengajuan lembur'
-        });
-      }
+export class OvertimeRequestListComponent {
+  searchText = '';
+  selectedStatus: string | null = null;
+  
+  statusOptions = [
+    { label: 'Menunggu', value: 'Menunggu' },
+    { label: 'Disetujui', value: 'Disetujui' },
+    { label: 'Ditolak', value: 'Ditolak' }
+  ];
+  
+  overtimeRequests = [
+    { id: 1, date: '15 Jan 2024', startTime: '18:00', endTime: '21:00', totalHours: 3, reason: 'Deadline proyek sistem inventory', status: 'Menunggu' },
+    { id: 2, date: '12 Jan 2024', startTime: '17:00', endTime: '20:00', totalHours: 3, reason: 'Persiapan presentasi klien', status: 'Disetujui' },
+    { id: 3, date: '10 Jan 2024', startTime: '18:00', endTime: '22:00', totalHours: 4, reason: 'Perbaikan bug sistem keuangan', status: 'Disetujui' },
+    { id: 4, date: '5 Jan 2024', startTime: '19:00', endTime: '21:00', totalHours: 2, reason: 'Meeting dengan tim development', status: 'Ditolak' },
+  ];
+  
+  filteredRequests = [...this.overtimeRequests];
+  
+  applyFilters(): void {
+    this.filteredRequests = this.overtimeRequests.filter(req => {
+      const matchSearch = !this.searchText || 
+        req.date.toLowerCase().includes(this.searchText.toLowerCase()) ||
+        req.reason.toLowerCase().includes(this.searchText.toLowerCase());
+      const matchStatus = !this.selectedStatus || req.status === this.selectedStatus;
+      return matchSearch && matchStatus;
     });
   }
 
-  getStatusSeverity(status: string): 'success' | 'warn' | 'danger' | 'info' {
+  getStatusSeverity(status: string): 'success' | 'warn' | 'danger' | 'info' | 'secondary' | 'contrast' | undefined {
     switch (status) {
-      case 'DISETUJUI': return 'success';
-      case 'MENUNGGU_PERSETUJUAN': return 'warn';
-      case 'DITOLAK': return 'danger';
+      case 'Disetujui': return 'success';
+      case 'Menunggu': return 'warn';
+      case 'Ditolak': return 'danger';
       default: return 'info';
     }
   }
-
-  getStatusLabel(status: string): string {
-    switch (status) {
-      case 'DISETUJUI': return 'Disetujui';
-      case 'MENUNGGU_PERSETUJUAN': return 'Menunggu';
-      case 'DITOLAK': return 'Ditolak';
-      default: return status || '-';
-    }
-  }
-
-  formatCurrency(value: number): string {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(value || 0);
-  }
-
-  approveRequest(request: OvertimeRequest): void {
-    this.confirmationService.confirm({
-      message: `Setujui pengajuan lembur dari "${request.karyawan?.nama}"?`,
-      header: 'Konfirmasi Persetujuan',
-      icon: 'pi pi-check-circle',
-      acceptLabel: 'Ya, Setujui',
-      rejectLabel: 'Batal',
-      accept: () => {
-        this.overtimeRequestService.approve(request.id).subscribe({
-          next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Berhasil',
-              detail: 'Pengajuan lembur disetujui'
-            });
-            this.loadOvertimeRequests();
-          },
-          error: (err) => {
-            console.error('Error approving:', err);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Gagal menyetujui pengajuan'
-            });
-          }
-        });
-      }
-    });
-  }
-
-  rejectRequest(request: OvertimeRequest): void {
-    this.confirmationService.confirm({
-      message: `Tolak pengajuan lembur dari "${request.karyawan?.nama}"?`,
-      header: 'Konfirmasi Penolakan',
-      icon: 'pi pi-times-circle',
-      acceptLabel: 'Ya, Tolak',
-      rejectLabel: 'Batal',
-      accept: () => {
-        this.overtimeRequestService.reject(request.id).subscribe({
-          next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Berhasil',
-              detail: 'Pengajuan lembur ditolak'
-            });
-            this.loadOvertimeRequests();
-          },
-          error: (err) => {
-            console.error('Error rejecting:', err);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Gagal menolak pengajuan'
-            });
-          }
-        });
-      }
-    });
-  }
 }
-</div></div>

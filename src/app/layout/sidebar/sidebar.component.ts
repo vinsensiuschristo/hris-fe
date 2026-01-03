@@ -15,6 +15,7 @@ export class SidebarComponent implements OnInit {
   @Input() isCollapsed = false;
   @Input() isMobileOpen = false;
   @Output() closeMobile = new EventEmitter<void>();
+  @Output() expandSidebar = new EventEmitter<void>();
 
   private authService = inject(AuthService);
   private router = inject(Router);
@@ -75,6 +76,12 @@ export class SidebarComponent implements OnInit {
         roles: ['HR', 'ADMIN']
       },
       {
+        label: 'Laporan',
+        icon: 'pi pi-chart-bar',
+        routerLink: '/reports',
+        roles: ['HR', 'ADMIN']
+      },
+      {
         label: 'Data Master',
         icon: 'pi pi-database',
         roles: ['ADMIN'],
@@ -130,6 +137,14 @@ export class SidebarComponent implements OnInit {
   expandedMenus: Set<string> = new Set();
 
   toggleSubmenu(label: string): void {
+    // If sidebar is collapsed, expand it first
+    if (this.isCollapsed && !this.isMobileOpen) {
+      this.expandSidebar.emit();
+      // Always expand the submenu when coming from collapsed state
+      this.expandedMenus.add(label);
+      return;
+    }
+    
     if (this.expandedMenus.has(label)) {
       this.expandedMenus.delete(label);
     } else {

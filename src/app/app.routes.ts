@@ -79,9 +79,19 @@ export const routes: Routes = [
               .then(m => m.LeaveApprovalComponent)
           },
           {
+            path: 'leave/:id',
+            loadComponent: () => import('./features/approvals/leave-approval-detail/leave-approval-detail.component')
+              .then(m => m.LeaveApprovalDetailComponent)
+          },
+          {
             path: 'overtime',
             loadComponent: () => import('./features/approvals/overtime-approval/overtime-approval.component')
               .then(m => m.OvertimeApprovalComponent)
+          },
+          {
+            path: 'overtime/:id',
+            loadComponent: () => import('./features/approvals/overtime-approval-detail/overtime-approval-detail.component')
+              .then(m => m.OvertimeApprovalDetailComponent)
           }
         ]
       },
@@ -169,6 +179,28 @@ export const routes: Routes = [
             path: ':id/edit',
             loadComponent: () => import('./features/users/user-form/user-form.component')
               .then(m => m.UserFormComponent)
+          }
+        ]
+      },
+      
+      // Reports
+      {
+        path: 'reports',
+        children: [
+          {
+            path: '',
+            redirectTo: 'employees',
+            pathMatch: 'full'
+          },
+          {
+            path: 'employees',
+            loadComponent: () => import('./features/reports/employee-reports/employee-reports.component')
+              .then(m => m.EmployeeReportsComponent)
+          },
+          {
+            path: 'employees/:id',
+            loadComponent: () => import('./features/reports/employee-report-detail/employee-report-detail.component')
+              .then(m => m.EmployeeReportDetailComponent)
           }
         ]
       },

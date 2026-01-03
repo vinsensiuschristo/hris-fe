@@ -267,6 +267,40 @@ textarea[pTextarea] {
   resize: vertical !important;
 }
 
+/* ===================== PrimeNG DatePicker/Calendar Styling ===================== */
+p-datepicker {
+  display: block !important;
+  width: 100% !important;
+}
+
+.p-datepicker {
+  width: 100% !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  background-color: var(--hris-white) !important;
+  border: 1px solid var(--hris-gray-300) !important;
+  border-radius: 8px !important;
+  
+  .p-datepicker-input,
+  .p-inputtext {
+    flex: 1 1 auto !important;
+    height: 100% !important;
+    border: none !important;
+    padding: 0 1rem !important;
+    font-size: 0.9375rem !important;
+  }
+  
+  .p-datepicker-dropdown,
+  .p-datepicker-trigger {
+    flex: 0 0 auto !important;
+    width: 36px !important;
+    height: 100% !important;
+  }
+}
+
 /* ===================== PrimeNG Select (p-select) Styling ===================== */
 p-select {
   display: block !important;
@@ -275,11 +309,16 @@ p-select {
 
 .p-select {
   width: 100% !important;
-  min-height: 44px !important;
+  min-height: 42px !important;
+  height: 42px !important;
   background-color: var(--hris-white) !important;
   border: 1px solid var(--hris-gray-300) !important;
   border-radius: 8px !important;
   transition: all 0.2s ease !important;
+  /* CRITICAL: Flexbox to keep arrow inline */
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
   
   &:hover {
     border-color: var(--hris-gray-400) !important;
@@ -294,14 +333,15 @@ p-select {
 
 /* Select label (displayed value) */
 .p-select-label {
+  flex: 1 1 auto !important;
   display: flex !important;
   align-items: center !important;
-  padding: 0.75rem 1rem !important;
+  padding: 0 1rem !important;
   font-size: 0.9375rem !important;
   color: var(--hris-gray-900) !important;
-  min-height: 44px !important;
+  height: 100% !important;
   line-height: 1.4 !important;
-  overflow: visible !important;
+  overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
 }
@@ -312,12 +352,14 @@ p-select {
   font-weight: 400 !important;
 }
 
-/* Select dropdown trigger */
+/* Select dropdown trigger - MUST stay inline */
 .p-select-dropdown {
+  flex: 0 0 auto !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 40px !important;
+  width: 36px !important;
+  height: 100% !important;
   background: transparent !important;
   border: none !important;
   color: var(--hris-gray-500) !important;
@@ -536,6 +578,459 @@ input.p-datepicker-input {
   
   .p-inputtext {
     flex: 1 !important;
+  }
+}
+
+/* ===================== PrimeNG Paginator - Modern Compact Styling ===================== */
+.p-paginator {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 0.75rem !important;
+  padding: 0.625rem 1rem !important;
+  background: #F8FAFC !important;
+  border-top: 1px solid #E2E8F0 !important;
+  border-radius: 0 !important;
+  font-size: 0.8125rem !important;
+}
+
+/* Page info text */
+.p-paginator-current {
+  color: #64748B !important;
+  font-size: 0.75rem !important;
+  margin-right: auto !important;
+  white-space: nowrap !important;
+}
+
+/* Hide default left content if using current */
+.p-paginator-left-content {
+  display: none !important;
+}
+
+/* Rows per page dropdown - inline compact */
+.p-paginator-rpp-options {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.375rem !important;
+  margin-right: 0.5rem !important;
+  
+  .p-select,
+  .p-dropdown {
+    min-width: 60px !important;
+    width: 60px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    background: white !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 6px !important;
+    
+    .p-select-label,
+    .p-dropdown-label {
+      color: #475569 !important;
+      font-size: 0.75rem !important;
+      padding: 0 0.5rem !important;
+    }
+    
+    .p-select-dropdown,
+    .p-dropdown-trigger {
+      width: 24px !important;
+      color: #94A3B8 !important;
+    }
+    
+    &:hover {
+      border-color: #CBD5E1 !important;
+    }
+  }
+}
+
+/* Paginator buttons container */
+.p-paginator-pages {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+}
+
+/* All paginator buttons - compact size */
+.p-paginator-page,
+.p-paginator-first,
+.p-paginator-prev,
+.p-paginator-next,
+.p-paginator-last {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 28px !important;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #64748B !important;
+  border: 1px solid transparent !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  
+  &:hover:not(.p-disabled) {
+    background: #E2E8F0 !important;
+    color: #1E293B !important;
+  }
+  
+  &.p-highlight {
+    background: #3B82F6 !important;
+    color: #FFFFFF !important;
+  }
+  
+  &.p-disabled {
+    opacity: 0.35 !important;
+    cursor: not-allowed !important;
+  }
+  
+  .p-icon {
+    width: 0.75rem !important;
+    height: 0.75rem !important;
+  }
+}
+
+/* First/last buttons hide on small data */
+.p-paginator-first,
+.p-paginator-last {
+  display: none !important;
+}
+
+/* Page size label - hide or minimal */
+.p-paginator-rpp-label {
+  display: none !important;
+}
+
+/* Jump to page - hide */
+.p-paginator-jtp-select {
+  display: none !important;
+}
+
+/* Paginator inside table cards - border radius fix */
+.hris-card .p-paginator,
+.p-datatable .p-paginator {
+  margin: 0 !important;
+  border-radius: 0 0 12px 12px !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 576px) {
+  .p-paginator {
+    padding: 0.5rem 0.75rem !important;
+    gap: 0.5rem !important;
+  }
+  
+  .p-paginator-current {
+    font-size: 0.6875rem !important;
+  }
+  
+  .p-paginator-rpp-options {
+    display: none !important;
+  }
+  
+  .p-paginator-page,
+  .p-paginator-prev,
+  .p-paginator-next {
+    min-width: 26px !important;
+    width: 26px !important;
+    height: 26px !important;
+  }
+}
+
+/* ===================== Global Search Box Styling ===================== */
+.search-box,
+.search-input-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  
+  .pi-search,
+  > i.pi {
+    position: absolute;
+    left: 0.875rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94A3B8;
+    font-size: 0.875rem;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  input,
+  .p-inputtext {
+    padding-left: 2.5rem !important;
+    width: 100%;
+    height: 42px;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: white;
+    transition: all 0.2s ease;
+    
+    &::placeholder {
+      color: #94A3B8;
+    }
+    
+    &:focus {
+      border-color: #3B82F6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+      outline: none;
+    }
+  }
+}
+
+/* Table header with search */
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #E2E8F0;
+  background: #FAFAFA;
+  
+  .search-box,
+  .search-input-wrapper {
+    width: 280px;
+  }
+  
+  .data-count,
+  .table-info {
+    font-size: 0.875rem;
+    color: #64748B;
+  }
+}
+
+/* Filter section layout */
+.filter-section {
+  padding: 1rem 1.25rem;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  position: relative;
+  z-index: 1;
+  
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+  }
+  
+  .filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    flex: 1;
+    min-width: 150px;
+    max-width: 220px;
+    
+    label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #64748B;
+    }
+    
+    // Fix input widths inside filter
+    input,
+    .p-inputtext,
+    .p-select,
+    p-select,
+    p-datepicker,
+    .p-datepicker {
+      width: 100% !important;
+    }
+  }
+  
+  .filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+}
+
+/* Datepicker/Calendar overlay - Z-INDEX FIX */
+.p-datepicker-panel,
+.p-overlay,
+.p-datepicker-overlay,
+.p-calendar-panel,
+.p-component-overlay,
+.p-connected-overlay,
+.p-datepicker.p-component,
+body > .p-datepicker,
+body > .p-datepicker-panel {
+  z-index: 10000 !important;
+}
+
+/* Ensure datepicker input icon doesn't overlap */
+.p-datepicker-input-icon-container,
+.p-datepicker-trigger {
+  z-index: 1 !important;
+}
+
+
+/* PrimeNG Select component fix - ensure arrow stays inline */
+/* Targeting p-inputwrapper which is the actual flex container in PrimeNG 19 */
+p-select.p-inputwrapper,
+p-select.p-component,
+.p-select.p-inputwrapper,
+.p-select.p-component,
+p-select,
+.p-select {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: stretch !important;
+  width: 100%;
+}
+
+/* Select label - the text/placeholder part */
+.p-select-label,
+.p-placeholder.p-select-label,
+span.p-select-label {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  display: block !important;
+}
+
+/* Select dropdown arrow button */
+.p-select-dropdown,
+.p-select-trigger,
+div.p-select-dropdown {
+  flex: 0 0 auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 2.5rem !important;
+  min-width: 2.5rem !important;
+}
+
+/* PrimeNG Select/Dropdown overlay fix */
+.p-select-overlay,
+.p-dropdown-panel,
+.p-autocomplete-panel,
+.p-multiselect-panel,
+.p-select-list-container {
+  z-index: 10001 !important;
+}
+
+/* Detail Page Shared Styles */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 1.5rem;
+  
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.main-card {
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #E2E8F0;
+    
+    h3 {
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #1E293B;
+    }
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+  }
+}
+
+.sidebar-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.approval-card {
+  border-radius: 12px !important;
+  overflow: hidden;
+  
+  &.approved {
+    background: linear-gradient(135deg, #ECFDF5, #D1FAE5) !important;
+    border: 1px solid #A7F3D0 !important;
+  }
+  
+  &.rejected {
+    background: linear-gradient(135deg, #FEF2F2, #FECACA) !important;
+    border: 1px solid #FCA5A5 !important;
+  }
+}
+
+/* Timeline styles */
+.timeline-body {
+  padding: 0.75rem 1rem !important;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-left: 2px solid #E2E8F0;
+  margin-left: 0.875rem;
+  padding-left: 1.25rem;
+  position: relative;
+  
+  &:last-child {
+    border-left-color: transparent;
+  }
+  
+  &.active .timeline-icon {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  }
+}
+
+.timeline-icon {
+  position: absolute;
+  left: -0.6875rem;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  i {
+    font-size: 0.7rem;
+    color: white;
+  }
+}
+
+.timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  
+  .timeline-status {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #1E293B;
+  }
+  
+  .timeline-desc {
+    font-size: 0.8125rem;
+    color: #64748B;
+  }
+  
+  .timeline-date {
+    font-size: 0.75rem;
+    color: #94A3B8;
+    margin-top: 0.125rem;
   }
 }
 
@@ -4312,4 +4807,530 @@ p-button + p-button {
   margin-top: 0.5rem !important;
   font-size: 0.8125rem !important;
   color: #64748B !important;
+}
+
+/* ===================== Form Card Size Variants ===================== */
+/* Small form card - 400px max */
+.form-card-sm {
+  max-width: 400px !important;
+}
+
+/* Medium form card - 600px max */
+.form-card-md {
+  max-width: 600px !important;
+}
+
+/* Large form card - 800px max */
+.form-card-lg {
+  max-width: 800px !important;
+}
+
+/* Extra large form card - 1000px max */
+.form-card-xl {
+  max-width: 1000px !important;
+}
+
+/* ===================== RESPONSIVE DESIGN ===================== */
+/* 
+  Breakpoints:
+  - Desktop:  > 1200px
+  - Laptop:   992px - 1200px  
+  - Tablet:   768px - 992px
+  - Mobile:   < 768px
+  - Small:    < 576px
+*/
+
+/* ========== LAPTOP (max-width: 1200px) ========== */
+@media (max-width: 1200px) {
+  :root {
+    --hris-sidebar-width: 240px;
+  }
+  
+  /* Reduce page title size slightly */
+  .page-title {
+    font-size: 1.625rem !important;
+  }
+  
+  /* Reduce card padding */
+  .hris-card {
+    padding: 1.25rem !important;
+  }
+  
+  /* Stats cards in dashboard - 2 per row */
+  .stats-grid,
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ========== TABLET (max-width: 992px) ========== */
+@media (max-width: 992px) {
+  /* Sidebar - fully hidden on tablet/mobile (toggled by hamburger) */
+  .sidebar {
+    transform: translateX(-100%) !important;
+    width: var(--hris-sidebar-width) !important;
+    
+    &.mobile-open {
+      transform: translateX(0) !important;
+      width: var(--hris-sidebar-width) !important;
+      
+      /* Force show menu text when mobile-open, even if collapsed */
+      .menu-text,
+      .menu-link .menu-text,
+      .submenu-arrow {
+        display: inline !important;
+        visibility: visible !important;
+        width: auto !important;
+        position: static !important;
+      }
+      
+      .menu-link {
+        justify-content: flex-start !important;
+        padding: 0.75rem 1rem !important;
+      }
+      
+      .menu-icon {
+        margin-right: 0.75rem !important;
+      }
+    }
+    
+    /* Override collapsed state when on mobile */
+    &.collapsed.mobile-open {
+      width: var(--hris-sidebar-width) !important;
+      
+      .sidebar-header {
+        padding: 1.25rem 1.5rem !important;
+        justify-content: flex-start !important;
+      }
+      
+      .menu-text,
+      .submenu-arrow,
+      .menu-badge {
+        display: inline !important;
+      }
+      
+      .menu-link {
+        padding: 0.75rem 1rem !important;
+        justify-content: flex-start !important;
+      }
+      
+      .menu-icon {
+        margin-right: 0.75rem !important;
+      }
+    }
+  }
+  
+  /* Header - remove left padding for hamburger alignment */
+  .app-header {
+    left: 0 !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+  
+  /* Toggle/Hamburger button - align to left edge */
+  .toggle-btn {
+    margin-left: 0 !important;
+  }
+  
+  /* Form card sizes - full width on tablet */
+  .form-card-sm,
+  .form-card-md,
+  .form-card-lg,
+  .form-card-xl {
+    max-width: 100% !important;
+  }
+
+  /* Typography */
+  h1, .page-title {
+    font-size: 1.5rem !important;
+  }
+  
+  h2 {
+    font-size: 1.25rem !important;
+  }
+  
+  .page-subtitle {
+    font-size: 0.875rem !important;
+  }
+  
+  /* Page header - stack on tablet */
+  .page-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+  }
+  
+  .page-header a.p-button,
+  .page-header button.p-button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  
+  /* Cards */
+  .hris-card {
+    padding: 1rem !important;
+    border-radius: 8px !important;
+  }
+  
+  /* Forms - full width */
+  .hris-card[style*="max-width"] {
+    max-width: 100% !important;
+  }
+  
+  /* Form groups in flex - stack vertically */
+  .d-flex.gap-3 {
+    flex-direction: column !important;
+  }
+  
+  .d-flex.gap-3 > .form-group {
+    width: 100% !important;
+  }
+  
+  /* Table - enable horizontal scroll */
+  .p-datatable-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  .p-datatable table {
+    min-width: 700px !important;
+  }
+  
+  /* Table font size */
+  .p-datatable-thead > tr > th,
+  .p-datatable-tbody > tr > td {
+    font-size: 0.8125rem !important;
+    padding: 0.75rem !important;
+  }
+  
+  /* Button sizes */
+  .p-button {
+    padding: 0.625rem 1rem !important;
+    font-size: 0.875rem !important;
+  }
+  
+  /* Stats cards */
+  .stats-grid,
+  .dashboard-stats {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ========== MOBILE (max-width: 768px) ========== */
+@media (max-width: 768px) {
+  /* Root adjustments */
+  html, body {
+    font-size: 13px !important;
+  }
+  
+  /* Typography - smaller on mobile */
+  h1, .page-title {
+    font-size: 1.375rem !important;
+  }
+  
+  h2 {
+    font-size: 1.125rem !important;
+  }
+  
+  h3 {
+    font-size: 1rem !important;
+  }
+  
+  .page-subtitle {
+    font-size: 0.8125rem !important;
+  }
+  
+  /* Page header */
+  .page-header {
+    padding-bottom: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  /* Cards */
+  .hris-card {
+    padding: 0.875rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  /* Form groups */
+  .form-group {
+    margin-bottom: 1rem !important;
+  }
+  
+  .form-group label {
+    font-size: 0.8125rem !important;
+    margin-bottom: 0.375rem !important;
+  }
+  
+  /* Inputs */
+  .p-inputtext,
+  .p-select,
+  .p-dropdown,
+  textarea,
+  input {
+    font-size: 16px !important; /* Prevents iOS zoom on focus */
+    padding: 0.625rem 0.875rem !important;
+  }
+  
+  /* Buttons - full width on mobile */
+  .form-group.d-flex button,
+  .form-group.d-flex a.p-button {
+    flex: 1 !important;
+  }
+  
+  /* Table */
+  .p-datatable table {
+    min-width: 600px !important;
+  }
+  
+  .p-datatable-thead > tr > th,
+  .p-datatable-tbody > tr > td {
+    font-size: 0.75rem !important;
+    padding: 0.625rem !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Action buttons in table - smaller */
+  .p-datatable-tbody .p-button,
+  td .p-button {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    max-width: 28px !important;
+    padding: 0.375rem !important;
+  }
+  
+  /* Tags */
+  .p-tag {
+    font-size: 0.6875rem !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+  
+  /* Pagination */
+  .p-paginator .p-paginator-element {
+    min-width: 32px !important;
+    height: 32px !important;
+    font-size: 0.75rem !important;
+  }
+  
+  /* Toast notifications - full width on mobile */
+  .p-toast {
+    width: calc(100% - 2rem) !important;
+    left: 1rem !important;
+    right: 1rem !important;
+  }
+  
+  /* Datepicker/Calendar - ensure inputs stay in container */
+  p-datepicker,
+  p-calendar {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    position: relative !important;
+  }
+  
+  /* Datepicker input wrapper */
+  .p-datepicker,
+  .p-calendar {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Datepicker input field */
+  .p-datepicker-input,
+  .p-calendar-input,
+  input.p-datepicker-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Datepicker overlay panel - center on screen */
+  .p-datepicker-panel,
+  .p-calendar-panel,
+  .p-datepicker-overlay {
+    position: fixed !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-width: calc(100vw - 2rem) !important;
+    max-height: calc(100vh - 4rem) !important;
+    z-index: 9999999 !important;
+  }
+  
+  /* Form inputs inside card - ensure proper width */
+  .hris-card .form-group,
+  .hris-card .form-group > * {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .hris-card .p-inputtext,
+  .hris-card .p-select,
+  .hris-card p-datepicker,
+  .hris-card p-calendar,
+  .hris-card .p-datepicker,
+  .hris-card .p-calendar {
+    width: 100% !important;
+    max-width: 100% !important;
+    position: relative !important;
+  }
+  
+  /* Form card - prevent overflow */
+  .form-card-sm,
+  .form-card-md,
+  .form-card-lg,
+  .form-card-xl {
+    overflow: visible !important;
+  }
+}
+
+/* ========== SMALL MOBILE (max-width: 576px) ========== */
+@media (max-width: 576px) {
+  /* Typography */
+  h1, .page-title {
+    font-size: 1.25rem !important;
+  }
+  
+  .page-subtitle {
+    font-size: 0.75rem !important;
+  }
+  
+  /* Cards - minimal padding */
+  .hris-card {
+    padding: 0.75rem !important;
+    border-radius: 6px !important;
+  }
+  
+  /* Table - minimal */
+  .p-datatable table {
+    min-width: 500px !important;
+  }
+  
+  .p-datatable-thead > tr > th,
+  .p-datatable-tbody > tr > td {
+    font-size: 0.6875rem !important;
+    padding: 0.5rem !important;
+  }
+  
+  /* Buttons */
+  .p-button {
+    padding: 0.5rem 0.875rem !important;
+    font-size: 0.8125rem !important;
+  }
+  
+  /* Form buttons - stack vertically */
+  .form-group.d-flex {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+  
+  .form-group.d-flex button,
+  .form-group.d-flex a.p-button {
+    width: 100% !important;
+  }
+}
+
+/* ========== RESPONSIVE UTILITY CLASSES ========== */
+/* Hide on mobile */
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* Hide on tablet */
+@media (max-width: 992px) {
+  .hide-tablet {
+    display: none !important;
+  }
+}
+
+/* Show only on mobile */
+@media (min-width: 769px) {
+  .show-mobile-only {
+    display: none !important;
+  }
+}
+
+/* Show only on tablet and below */
+@media (min-width: 993px) {
+  .show-tablet-only {
+    display: none !important;
+  }
+}
+
+/* Full width on mobile */
+@media (max-width: 768px) {
+  .mobile-full-width {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Stack on mobile - convert flex row to column */
+@media (max-width: 768px) {
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+}
+
+/* Center on mobile */
+@media (max-width: 768px) {
+  .mobile-center {
+    text-align: center !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+}
+
+/* Responsive text alignment */
+@media (max-width: 768px) {
+  .mobile-text-center {
+    text-align: center !important;
+  }
+  
+  .mobile-text-left {
+    text-align: left !important;
+  }
+}
+
+/* Responsive spacing */
+@media (max-width: 768px) {
+  .mobile-mb-1 {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .mobile-mb-2 {
+    margin-bottom: 1rem !important;
+  }
+  
+  .mobile-p-1 {
+    padding: 0.5rem !important;
+  }
+  
+  .mobile-p-2 {
+    padding: 1rem !important;
+  }
+}
+
+/* Print styles - hide non-essential elements */
+@media print {
+  .sidebar,
+  .header,
+  .p-paginator,
+  .page-header a.p-button,
+  .page-header button.p-button {
+    display: none !important;
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .hris-card {
+    box-shadow: none !important;
+    border: 1px solid #E2E8F0 !important;
+  }
 }

@@ -85,11 +85,40 @@
   gap: 1rem;
   box-shadow: var(--hris-shadow);
   transition: var(--hris-transition);
+<<<<<<< HEAD
   border: 1px solid var(--hris-gray-100);
+=======
+  text-decoration: none;
+  position: relative;
+>>>>>>> 1614761 (feat: add detail pages, fix select dropdown, add dialogs)
   
   &:hover {
     transform: translateY(-2px);
     box-shadow: var(--hris-shadow-md);
+  }
+  
+  &.clickable {
+    cursor: pointer;
+    
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+      
+      .stat-arrow {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+  }
+  
+  .stat-arrow {
+    position: absolute;
+    right: 1.25rem;
+    color: var(--hris-gray-400);
+    font-size: 0.875rem;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: all 0.2s ease;
   }
   
   .stat-icon {

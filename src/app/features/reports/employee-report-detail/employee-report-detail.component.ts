@@ -6,6 +6,7 @@ import { ButtonDirective } from 'primeng/button';
 import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { Tag } from 'primeng/tag';
+import { Card } from 'primeng/card';
 import { Tooltip } from 'primeng/tooltip';
 import { ChartModule } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
@@ -21,6 +22,7 @@ import { TableModule } from 'primeng/table';
     Select, 
     DatePicker, 
     Tag,
+    Card,
     Tooltip,
     ChartModule,
     TableModule

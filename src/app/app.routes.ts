@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard, roleGuard } from './core/guards';
+import { authGuard, guestGuard } from './core/guards';
 
 export const routes: Routes = [
   // Public routes
@@ -96,13 +96,6 @@ export const routes: Routes = [
         ]
       },
       
-      // Attendance
-      {
-        path: 'attendance',
-        loadComponent: () => import('./features/attendance/attendance-list/attendance-list.component')
-          .then(m => m.AttendanceListComponent)
-      },
-      
       // Employees
       {
         path: 'employees',
@@ -114,8 +107,6 @@ export const routes: Routes = [
           },
           {
             path: 'new',
-            canActivate: [roleGuard],
-            data: { roles: ['ADMIN', 'HR'] },
             loadComponent: () => import('./features/employees/employee-form/employee-form.component')
               .then(m => m.EmployeeFormComponent)
           },
@@ -126,8 +117,6 @@ export const routes: Routes = [
           },
           {
             path: ':id/edit',
-            canActivate: [roleGuard],
-            data: { roles: ['ADMIN', 'HR'] },
             loadComponent: () => import('./features/employees/employee-form/employee-form.component')
               .then(m => m.EmployeeFormComponent)
           }

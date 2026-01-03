@@ -51,6 +51,10 @@ export class MainLayoutComponent implements OnInit {
     this.isMobileMenuOpen.set(false);
   }
 
+  expandSidebar(): void {
+    this.isSidebarCollapsed.set(false);
+  }
+
   private checkScreenSize(): void {
     if (window.innerWidth < 992) {
       this.isSidebarCollapsed.set(true);

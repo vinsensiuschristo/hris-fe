@@ -8,6 +8,7 @@ import { Select } from 'primeng/select';
 import { InputText } from 'primeng/inputtext';
 import { DatePicker } from 'primeng/datepicker';
 import { Tag } from 'primeng/tag';
+import { Card } from 'primeng/card';
 import { Tooltip } from 'primeng/tooltip';
 import { ChartModule } from 'primeng/chart';
 
@@ -23,6 +24,7 @@ import { ChartModule } from 'primeng/chart';
     InputText, 
     DatePicker, 
     Tag,
+    Card,
     Tooltip,
     ChartModule
   ],

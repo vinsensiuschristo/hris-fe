@@ -85,40 +85,11 @@
   gap: 1rem;
   box-shadow: var(--hris-shadow);
   transition: var(--hris-transition);
-<<<<<<< HEAD
   border: 1px solid var(--hris-gray-100);
-=======
-  text-decoration: none;
-  position: relative;
->>>>>>> 1614761 (feat: add detail pages, fix select dropdown, add dialogs)
   
   &:hover {
     transform: translateY(-2px);
     box-shadow: var(--hris-shadow-md);
-  }
-  
-  &.clickable {
-    cursor: pointer;
-    
-    &:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-      
-      .stat-arrow {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-  }
-  
-  .stat-arrow {
-    position: absolute;
-    right: 1.25rem;
-    color: var(--hris-gray-400);
-    font-size: 0.875rem;
-    opacity: 0;
-    transform: translateX(-8px);
-    transition: all 0.2s ease;
   }
   
   .stat-icon {
@@ -167,41 +138,19 @@
   
   .chart-card {
     // Chart specific styles
-    .card-body {
-      padding: 1rem;
-    }
   }
   
   .recent-card {
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid var(--hris-gray-100);
-      
-      h3 {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--hris-gray-900);
-        margin: 0;
-      }
-    }
-    
     .view-all {
       font-size: 0.875rem;
       color: var(--hris-primary);
-      font-weight: 600;
-      text-decoration: none;
-      transition: var(--hris-transition);
+      font-weight: 500;
       
       &:hover {
-        color: var(--hris-primary-dark);
         text-decoration: underline;
       }
     }
     
-<<<<<<< HEAD
     :host ::ng-deep {
       .p-datatable {
         .p-datatable-wrapper {
@@ -232,76 +181,10 @@
             &:last-child {
               border-bottom-right-radius: var(--hris-border-radius);
             }
-=======
-    .card-body {
-      padding: 0;
-      
-      // Table inside card
-      .p-datatable {
-        .p-datatable-thead > tr > th {
-          background: var(--hris-gray-50);
-          color: var(--hris-gray-500);
-          font-weight: 600;
-          font-size: 0.75rem;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          padding: 0.875rem 1.25rem;
-          border: none;
-          border-bottom: 1px solid var(--hris-gray-100);
-        }
-        
-        .p-datatable-tbody > tr {
-          border-bottom: 1px solid var(--hris-gray-100);
-          
-          &:last-child {
-            border-bottom: none;
-          }
-          
-          > td {
-            padding: 1rem 1.25rem;
-            color: var(--hris-gray-700);
-            font-size: 0.9rem;
-            border: none;
-            vertical-align: middle;
-          }
-          
-          &:hover {
-            background: var(--hris-gray-50);
->>>>>>> 9d46d78 (fix: table structure, toast notifications, form layout, and add logo link - Fix PrimeNG table cell display with explicit table-cell/table-row - Add modern full-color gradient toast notifications - Update button hover with transparency and scale effect - Widen overtime form from 600px to 800px - Add file upload component styling - Enhance table row hover visibility - Add routerLink to HRIS logo for dashboard navigation - Remove problematic nth-last-child CSS selectors)
           }
         }
       }
     }
-<<<<<<< HEAD
-=======
-  }
-}
-
-// Card shared styles
-.hris-card {
-  background: var(--hris-white);
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-  
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--hris-gray-100);
-    
-    h3 {
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: var(--hris-gray-900);
-      margin: 0;
-    }
-  }
-  
-  .card-body {
-    padding: 1.5rem;
->>>>>>> 9d46d78 (fix: table structure, toast notifications, form layout, and add logo link - Fix PrimeNG table cell display with explicit table-cell/table-row - Add modern full-color gradient toast notifications - Update button hover with transparency and scale effect - Widen overtime form from 600px to 800px - Add file upload component styling - Enhance table row hover visibility - Add routerLink to HRIS logo for dashboard navigation - Remove problematic nth-last-child CSS selectors)
   }
 }
 

@@ -1,4 +1,4 @@
-<div class="page-container"><div class="page-content">import { Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -122,4 +122,3 @@ export class ProfileComponent {
     return user.roles.map(r => r.namaRole).join(', ');
   }
 }
-</div></div>

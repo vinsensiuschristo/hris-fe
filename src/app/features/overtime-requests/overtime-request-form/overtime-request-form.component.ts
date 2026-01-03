@@ -1,4 +1,4 @@
-<div class="page-container"><div class="page-content">import { Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -26,7 +26,7 @@ import { NotificationService } from '../../../core/services/notification.service
       <p class="page-subtitle">Isi formulir untuk mengajukan lembur</p>
     </div>
     
-    <div class="hris-card form-card-lg">
+    <div class="hris-card" style="max-width: 600px;">
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
         <div class="form-group">
           <label>Tanggal Lembur <span class="required">*</span></label>
@@ -36,7 +36,6 @@ import { NotificationService } from '../../../core/services/notification.service
             dateFormat="dd/mm/yy"
             placeholder="Pilih tanggal"
             styleClass="w-full"
-            appendTo="body"
           />
         </div>
         
@@ -49,7 +48,6 @@ import { NotificationService } from '../../../core/services/notification.service
               [showIcon]="true"
               placeholder="Jam mulai"
               styleClass="w-full"
-              appendTo="body"
             />
           </div>
           
@@ -61,11 +59,9 @@ import { NotificationService } from '../../../core/services/notification.service
               [showIcon]="true"
               placeholder="Jam selesai"
               styleClass="w-full"
-              appendTo="body"
             />
           </div>
         </div>
-
         
         <div class="form-group">
           <label>Deskripsi Pekerjaan <span class="required">*</span></label>
@@ -133,4 +129,3 @@ export class OvertimeRequestFormComponent {
     }, 1000);
   }
 }
-</div></div>

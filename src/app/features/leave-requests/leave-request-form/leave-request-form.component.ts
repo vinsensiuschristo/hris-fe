@@ -52,6 +52,7 @@ import { NotificationService } from '../../../core/services/notification.service
             dateFormat="dd/mm/yy"
             placeholder="Pilih tanggal mulai"
             styleClass="w-full"
+            appendTo="body"
           />
         </div>
         
@@ -63,8 +64,10 @@ import { NotificationService } from '../../../core/services/notification.service
             dateFormat="dd/mm/yy"
             placeholder="Pilih tanggal selesai"
             styleClass="w-full"
+            appendTo="body"
           />
         </div>
+
         
         <div class="form-group">
           <label>Alasan <span class="required">*</span></label>

@@ -1,0 +1,129 @@
+﻿[33mΓ¥»[39m Building...
+[32mΓ£ö[39m Building...
+Application bundle generation failed. [13.068 seconds] - 2026-01-02T15:21:25.092Z
+
+node.exe : [1m[33m[33mΓû▓ 
+[43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: Tag is 
+not used within the template of 
+OvertimeApprovalComponent[0m [1m[35m[plugin 
+angular-compiler][0m
+At C:\Program Files\nodejs\npx.ps1:29 char:3
++   & $NODE_EXE $NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([1m[33m[33 
+   mΓ...r-compiler][0m:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+    src/app/features/approvals/overtime-approval/overtime-a
+pproval.component.ts:22:4:
+[37m      22 Γöé     [32mTag[37m,
+         Γò╡     [32m~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: 
+Card is not used within the template of 
+DashboardComponent[0m [1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/features/dashboard/dashboard.component.ts:26:4:
+[37m      26 Γöé     [32mCard[37m,
+         Γò╡     [32m~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: 
+Button is not used within the template of 
+DashboardComponent[0m [1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/features/dashboard/dashboard.component.ts:27:4:
+[37m      27 Γöé     [32mButton[37m,
+         Γò╡     [32m~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: 
+InputText is not used within the template of 
+EmployeeListComponent[0m [1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/features/employees/employee-list/employee-list.
+component.ts:23:4:
+[37m      23 Γöé     [32mInputText[37m,
+         Γò╡     [32m~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: 
+Card is not used within the template of 
+LeaveRequestFormComponent[0m [1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/features/leave-requests/leave-request-form/leav
+e-request-form.component.ts:23:4:
+[37m      23 Γöé     [32mCard[37m
+         Γò╡     [32m~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: 
+InputText is not used within the template of 
+LeaveRequestListComponent[0m [1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/features/leave-requests/leave-request-list/leav
+e-request-list.component.ts:23:4:
+[37m      23 Γöé     [32mInputText[37m,
+         Γò╡     [32m~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m 
+[1mDeprecation[0m [1m[35m[plugin angular-sass][0m
+
+    src/styles.scss:11:8:
+[37m      11 Γöé @import [32m[37m'app/styles/pages';
+         Γò╡         [32m^[0m
+
+
+  Sass @import rules are deprecated and will be removed in 
+Dart Sass 3.0.0.
+  
+  More info and automated migrator: 
+[4mhttps://sass-lang.com/d/import[0m
+
+  The plugin "angular-sass" was triggered by this import
+
+    angular:styles/global:styles:1:8:
+[37m      1 Γöé @import [32m'src/styles.scss'[37m;
+        Γò╡         [32m~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m 
+[1mCould not resolve "@angular/animations/browser"[0m
+
+    node_modules/@angular/platform-browser/fesm2022/animati
+ons-async.mjs:37:53:
+[37m      37 Γöé ....moduleImpl ?? 
+import([32m'@angular/animations/browser'[37m).then(m => 
+m);
+         Γò╡                          
+[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "@angular/animations/browser" as 
+external to exclude it from the bundle, which will remove 
+this error and leave the unresolved path in the bundle. 
+You can also add ".catch()" here to handle this failure at 
+run-time instead of bundle-time.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCan't find 
+stylesheet to import.
+  Γò╖
+2 Γöé @use 'primeng/resources/primeng' as *;
+  Γöé ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  Γò╡
+  src\styles.scss 2:1  root stylesheet[0m 
+[1m[35m[plugin angular-sass][0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 Γöé @import [32m'src/styles.scss'[37m;
+        Γò╡         [32m~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m

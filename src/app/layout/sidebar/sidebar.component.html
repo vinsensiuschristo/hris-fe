@@ -1,12 +1,12 @@
 <aside class="sidebar" [class.collapsed]="isCollapsed" [class.mobile-open]="isMobileOpen">
   <!-- Logo -->
   <div class="sidebar-header">
-    <div class="logo">
+    <a routerLink="/dashboard" class="logo">
       <i class="pi pi-building"></i>
       @if (!isCollapsed) {
         <span class="logo-text">HRIS</span>
       }
-    </div>
+    </a>
   </div>
   
   <!-- Navigation Menu -->

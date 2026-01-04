@@ -1,15 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { Tag } from 'primeng/tag';
 import { Dialog } from 'primeng/dialog';
 import { Tooltip } from 'primeng/tooltip';
-import { InputNumber } from 'primeng/inputnumber';
 import { ConfirmDialog } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
+import { LeaveTypeService } from '../../../../core/services/master-data.service';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { LeaveType } from '../../../../core/models';
 
 @Component({
   selector: 'app-leave-type-list',
@@ -20,10 +21,8 @@ import { ConfirmationService } from 'primeng/api';
     TableModule, 
     ButtonDirective, 
     InputText, 
-    Tag,
     Dialog,
     Tooltip,
-    InputNumber,
     ConfirmDialog
   ],
   providers: [ConfirmationService],
@@ -45,60 +44,59 @@ import { ConfirmationService } from 'primeng/api';
         <span class="data-count">Total: {{ filteredData.length }} tipe cuti</span>
       </div>
       
-      <p-table 
-        [value]="filteredData" 
-        [paginator]="true" 
-        [rows]="10"
-        [rowsPerPageOptions]="[10, 20, 50]"
-        [showCurrentPageReport]="true"
-        currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
-        styleClass="p-datatable-sm"
-      >
-        <ng-template pTemplate="header">
-          <tr>
-            <th style="width: 60px">No</th>
-            <th>Nama Tipe Cuti</th>
-            <th style="width: 100px">Maks Hari</th>
-            <th>Deskripsi</th>
-            <th style="width: 100px">Status</th>
-            <th style="width: 120px">Aksi</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-type let-i="rowIndex">
-          <tr>
-            <td>{{ i + 1 }}</td>
-            <td>
-              <div class="type-info">
-                <i [class]="'pi ' + type.icon" [style.color]="type.color"></i>
-                <span class="type-name">{{ type.name }}</span>
-              </div>
-            </td>
-            <td class="text-center">
-              <span class="days-badge">{{ type.maxDays }} hari</span>
-            </td>
-            <td class="text-muted">{{ type.description }}</td>
-            <td>
-              <p-tag [value]="type.isActive ? 'Aktif' : 'Nonaktif'" [severity]="type.isActive ? 'success' : 'secondary'" />
-            </td>
-            <td>
-              <div class="action-buttons">
-                <button pButton icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" pTooltip="Edit" (click)="editLeaveType(type)"></button>
-                <button pButton icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" pTooltip="Hapus" (click)="confirmDelete(type)"></button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="6" class="text-center p-4">
-              <div class="empty-state">
-                <i class="pi pi-calendar empty-icon"></i>
-                <p>Tidak ada data tipe cuti</p>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+      @if (loading) {
+        <div class="loading-state">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Memuat data...</span>
+        </div>
+      } @else {
+        <p-table 
+          [value]="filteredData" 
+          [paginator]="true" 
+          [rows]="10"
+          [rowsPerPageOptions]="[10, 20, 50]"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
+          styleClass="p-datatable-sm"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 60px">No</th>
+              <th>Nama Tipe Cuti</th>
+              <th style="width: 120px">Aksi</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-type let-i="rowIndex">
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td>
+                <div class="type-info">
+                  <div class="type-icon">
+                    <i class="pi pi-calendar"></i>
+                  </div>
+                  <span class="type-name">{{ type.namaJenis }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button pButton icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" pTooltip="Edit" (click)="editLeaveType(type)"></button>
+                  <button pButton icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" pTooltip="Hapus" (click)="confirmDelete(type)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="3" class="text-center p-4">
+                <div class="empty-state">
+                  <i class="pi pi-calendar empty-icon"></i>
+                  <p>Tidak ada data tipe cuti</p>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
     </div>
     
     <p-dialog 
@@ -111,23 +109,13 @@ import { ConfirmationService } from 'primeng/api';
       <div class="dialog-content">
         <div class="form-group">
           <label>Nama Tipe Cuti <span class="required">*</span></label>
-          <input type="text" pInputText [(ngModel)]="formData.name" placeholder="Contoh: Cuti Tahunan" class="w-full" />
-        </div>
-        
-        <div class="form-group">
-          <label>Maksimal Hari <span class="required">*</span></label>
-          <p-inputNumber [(ngModel)]="formData.maxDays" [min]="1" [max]="365" placeholder="12" [style]="{'width': '100%'}" />
-        </div>
-        
-        <div class="form-group">
-          <label>Deskripsi</label>
-          <input type="text" pInputText [(ngModel)]="formData.description" placeholder="Deskripsi tipe cuti" class="w-full" />
+          <input type="text" pInputText [(ngModel)]="formData.namaJenis" placeholder="Contoh: Cuti Tahunan" class="w-full" />
         </div>
       </div>
       
       <ng-template pTemplate="footer">
         <button pButton label="Batal" [text]="true" (click)="dialogVisible = false"></button>
-        <button pButton [label]="isEditMode ? 'Simpan' : 'Tambah'" icon="pi pi-check" (click)="saveLeaveType()"></button>
+        <button pButton [label]="isEditMode ? 'Simpan' : 'Tambah'" icon="pi pi-check" (click)="saveLeaveType()" [loading]="saving"></button>
       </ng-template>
     </p-dialog>
     
@@ -161,26 +149,37 @@ import { ConfirmationService } from 'primeng/api';
     .type-info {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
+    }
+    
+    .type-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #22C55E;
       
-      i { font-size: 1.125rem; }
+      i { color: white; font-size: 0.875rem; }
     }
     
     .type-name { font-weight: 500; color: #1E293B; }
     
-    .days-badge {
-      background: #DBEAFE;
-      color: #1D4ED8;
-      padding: 0.25rem 0.5rem;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 500;
-    }
-    
     .text-center { text-align: center; }
-    .text-muted { color: #64748B; font-size: 0.875rem; }
     .action-buttons { display: flex; gap: 0.25rem; }
     .dialog-content { padding: 0.5rem 0; }
+    
+    .loading-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 3rem;
+      color: #64748B;
+      
+      i { font-size: 1.5rem; }
+    }
     
     .empty-state {
       padding: 2rem;
@@ -193,86 +192,122 @@ import { ConfirmationService } from 'primeng/api';
     .w-full { width: 100%; }
   `]
 })
-export class LeaveTypeListComponent {
+export class LeaveTypeListComponent implements OnInit {
+  private leaveTypeService = inject(LeaveTypeService);
+  private confirmationService = inject(ConfirmationService);
+  private notificationService = inject(NotificationService);
+
   searchText = '';
   dialogVisible = false;
   isEditMode = false;
+  loading = false;
+  saving = false;
   
-  leaveTypes = [
-    { id: 1, name: 'Cuti Tahunan', maxDays: 12, description: 'Cuti tahunan yang diberikan setiap tahun', icon: 'pi-calendar', color: '#3B82F6', isActive: true },
-    { id: 2, name: 'Cuti Sakit', maxDays: 14, description: 'Cuti karena alasan kesehatan', icon: 'pi-heart', color: '#EF4444', isActive: true },
-    { id: 3, name: 'Cuti Melahirkan', maxDays: 90, description: 'Cuti untuk karyawan yang melahirkan', icon: 'pi-users', color: '#EC4899', isActive: true },
-    { id: 4, name: 'Cuti Menikah', maxDays: 3, description: 'Cuti untuk pernikahan karyawan', icon: 'pi-heart-fill', color: '#F59E0B', isActive: true },
-    { id: 5, name: 'Cuti Duka', maxDays: 3, description: 'Cuti untuk keluarga yang meninggal', icon: 'pi-star', color: '#6B7280', isActive: true },
-  ];
-  
-  filteredData = [...this.leaveTypes];
+  leaveTypes: LeaveType[] = [];
+  filteredData: LeaveType[] = [];
   
   formData = {
-    id: null as number | null,
-    name: '',
-    maxDays: null as number | null,
-    description: ''
+    id: null as string | null,
+    namaJenis: ''
   };
-  
-  constructor(private confirmationService: ConfirmationService) {}
+
+  ngOnInit(): void {
+    this.loadLeaveTypes();
+  }
+
+  loadLeaveTypes(): void {
+    this.loading = true;
+    this.leaveTypeService.getAll().subscribe({
+      next: (data) => {
+        this.leaveTypes = data;
+        this.filteredData = [...data];
+        this.loading = false;
+      },
+      error: (err) => {
+        this.loading = false;
+        this.notificationService.error('Error', 'Gagal memuat data tipe cuti');
+        console.error('Load leave types error:', err);
+      }
+    });
+  }
   
   onSearch(): void {
     const term = this.searchText.toLowerCase();
     this.filteredData = this.leaveTypes.filter(t => 
-      t.name.toLowerCase().includes(term)
+      t.namaJenis.toLowerCase().includes(term)
     );
   }
   
   openDialog(): void {
     this.isEditMode = false;
-    this.formData = { id: null, name: '', maxDays: null, description: '' };
+    this.formData = { id: null, namaJenis: '' };
     this.dialogVisible = true;
   }
   
-  editLeaveType(type: any): void {
+  editLeaveType(type: LeaveType): void {
     this.isEditMode = true;
-    this.formData = { ...type };
+    this.formData = { id: type.id, namaJenis: type.namaJenis };
     this.dialogVisible = true;
   }
   
   saveLeaveType(): void {
-    if (!this.formData.name || !this.formData.maxDays) return;
-    
-    if (this.isEditMode) {
-      const index = this.leaveTypes.findIndex(t => t.id === this.formData.id);
-      if (index > -1) {
-        this.leaveTypes[index].name = this.formData.name;
-        this.leaveTypes[index].maxDays = this.formData.maxDays!;
-        this.leaveTypes[index].description = this.formData.description;
-      }
-    } else {
-      const newId = Math.max(...this.leaveTypes.map(t => t.id)) + 1;
-      this.leaveTypes.push({
-        id: newId,
-        name: this.formData.name,
-        maxDays: this.formData.maxDays!,
-        description: this.formData.description,
-        icon: 'pi-calendar',
-        color: '#3B82F6',
-        isActive: true
-      });
+    if (!this.formData.namaJenis) {
+      this.notificationService.warn('Peringatan', 'Nama tipe cuti harus diisi');
+      return;
     }
     
-    this.filteredData = [...this.leaveTypes];
-    this.dialogVisible = false;
+    this.saving = true;
+    const request = { namaJenis: this.formData.namaJenis };
+    
+    if (this.isEditMode && this.formData.id) {
+      this.leaveTypeService.update(this.formData.id, request).subscribe({
+        next: () => {
+          this.notificationService.success('Berhasil', 'Tipe cuti berhasil diperbarui');
+          this.dialogVisible = false;
+          this.saving = false;
+          this.loadLeaveTypes();
+        },
+        error: (err) => {
+          this.saving = false;
+          this.notificationService.error('Error', 'Gagal memperbarui tipe cuti');
+          console.error('Update error:', err);
+        }
+      });
+    } else {
+      this.leaveTypeService.create(request).subscribe({
+        next: () => {
+          this.notificationService.success('Berhasil', 'Tipe cuti berhasil ditambahkan');
+          this.dialogVisible = false;
+          this.saving = false;
+          this.loadLeaveTypes();
+        },
+        error: (err) => {
+          this.saving = false;
+          this.notificationService.error('Error', 'Gagal menambahkan tipe cuti');
+          console.error('Create error:', err);
+        }
+      });
+    }
   }
   
-  confirmDelete(type: any): void {
+  confirmDelete(type: LeaveType): void {
     this.confirmationService.confirm({
-      message: `Apakah Anda yakin ingin menghapus tipe cuti "${type.name}"?`,
+      message: `Apakah Anda yakin ingin menghapus tipe cuti "${type.namaJenis}"?`,
       header: 'Konfirmasi Hapus',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Ya, Hapus',
       rejectLabel: 'Batal',
       accept: () => {
-        this.leaveTypes = this.leaveTypes.filter(t => t.id !== type.id);
-        this.filteredData = [...this.leaveTypes];
+        this.leaveTypeService.delete(type.id).subscribe({
+          next: () => {
+            this.notificationService.success('Berhasil', 'Tipe cuti berhasil dihapus');
+            this.loadLeaveTypes();
+          },
+          error: (err) => {
+            this.notificationService.error('Error', 'Gagal menghapus tipe cuti');
+            console.error('Delete error:', err);
+          }
+        });
       }
     });
   }

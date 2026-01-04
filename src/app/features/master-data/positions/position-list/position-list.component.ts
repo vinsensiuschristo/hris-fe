@@ -1,15 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { Tag } from 'primeng/tag';
 import { Dialog } from 'primeng/dialog';
 import { Tooltip } from 'primeng/tooltip';
-import { Select } from 'primeng/select';
 import { ConfirmDialog } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
+import { PositionService } from '../../../../core/services/master-data.service';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { Position } from '../../../../core/models';
 
 @Component({
   selector: 'app-position-list',
@@ -20,10 +21,8 @@ import { ConfirmationService } from 'primeng/api';
     TableModule, 
     ButtonDirective, 
     InputText, 
-    Tag,
     Dialog,
     Tooltip,
-    Select,
     ConfirmDialog
   ],
   providers: [ConfirmationService],
@@ -45,62 +44,59 @@ import { ConfirmationService } from 'primeng/api';
         <span class="data-count">Total: {{ filteredData.length }} jabatan</span>
       </div>
       
-      <p-table 
-        [value]="filteredData" 
-        [paginator]="true" 
-        [rows]="10"
-        [rowsPerPageOptions]="[10, 20, 50]"
-        [showCurrentPageReport]="true"
-        currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
-        styleClass="p-datatable-sm"
-      >
-        <ng-template pTemplate="header">
-          <tr>
-            <th style="width: 60px">No</th>
-            <th>Nama Jabatan</th>
-            <th>Departemen</th>
-            <th style="width: 100px">Level</th>
-            <th style="width: 100px">Status</th>
-            <th style="width: 120px">Aksi</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-pos let-i="rowIndex">
-          <tr>
-            <td>{{ i + 1 }}</td>
-            <td>
-              <div class="pos-info">
-                <span class="pos-name">{{ pos.name }}</span>
-                @if (pos.description) {
-                  <span class="pos-desc">{{ pos.description }}</span>
-                }
-              </div>
-            </td>
-            <td>{{ pos.department }}</td>
-            <td>
-              <p-tag [value]="'Level ' + pos.level" [severity]="getLevelSeverity(pos.level)" />
-            </td>
-            <td>
-              <p-tag [value]="pos.isActive ? 'Aktif' : 'Nonaktif'" [severity]="pos.isActive ? 'success' : 'secondary'" />
-            </td>
-            <td>
-              <div class="action-buttons">
-                <button pButton icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" pTooltip="Edit" (click)="editPosition(pos)"></button>
-                <button pButton icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" pTooltip="Hapus" (click)="confirmDelete(pos)"></button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="6" class="text-center p-4">
-              <div class="empty-state">
-                <i class="pi pi-briefcase empty-icon"></i>
-                <p>Tidak ada data jabatan</p>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+      @if (loading) {
+        <div class="loading-state">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Memuat data...</span>
+        </div>
+      } @else {
+        <p-table 
+          [value]="filteredData" 
+          [paginator]="true" 
+          [rows]="10"
+          [rowsPerPageOptions]="[10, 20, 50]"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
+          styleClass="p-datatable-sm"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 60px">No</th>
+              <th>Nama Jabatan</th>
+              <th style="width: 120px">Aksi</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-pos let-i="rowIndex">
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td>
+                <div class="pos-info">
+                  <div class="pos-icon">
+                    <i class="pi pi-briefcase"></i>
+                  </div>
+                  <span class="pos-name">{{ pos.namaJabatan }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button pButton icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" pTooltip="Edit" (click)="editPosition(pos)"></button>
+                  <button pButton icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" pTooltip="Hapus" (click)="confirmDelete(pos)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="3" class="text-center p-4">
+                <div class="empty-state">
+                  <i class="pi pi-briefcase empty-icon"></i>
+                  <p>Tidak ada data jabatan</p>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
     </div>
     
     <p-dialog 
@@ -113,42 +109,13 @@ import { ConfirmationService } from 'primeng/api';
       <div class="dialog-content">
         <div class="form-group">
           <label>Nama Jabatan <span class="required">*</span></label>
-          <input type="text" pInputText [(ngModel)]="formData.name" placeholder="Contoh: Senior Developer" class="w-full" />
-        </div>
-        
-        <div class="form-group">
-          <label>Departemen <span class="required">*</span></label>
-          <p-select 
-            [options]="departments" 
-            [(ngModel)]="formData.departmentId"
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Pilih departemen"
-            [style]="{'width': '100%'}"
-          />
-        </div>
-        
-        <div class="form-group">
-          <label>Level <span class="required">*</span></label>
-          <p-select 
-            [options]="levels" 
-            [(ngModel)]="formData.level"
-            optionLabel="name"
-            optionValue="value"
-            placeholder="Pilih level"
-            [style]="{'width': '100%'}"
-          />
-        </div>
-        
-        <div class="form-group">
-          <label>Deskripsi</label>
-          <input type="text" pInputText [(ngModel)]="formData.description" placeholder="Deskripsi singkat jabatan" class="w-full" />
+          <input type="text" pInputText [(ngModel)]="formData.namaJabatan" placeholder="Contoh: Senior Developer" class="w-full" />
         </div>
       </div>
       
       <ng-template pTemplate="footer">
         <button pButton label="Batal" [text]="true" (click)="dialogVisible = false"></button>
-        <button pButton [label]="isEditMode ? 'Simpan' : 'Tambah'" icon="pi pi-check" (click)="savePosition()"></button>
+        <button pButton [label]="isEditMode ? 'Simpan' : 'Tambah'" icon="pi pi-check" (click)="savePosition()" [loading]="saving"></button>
       </ng-template>
     </p-dialog>
     
@@ -181,15 +148,38 @@ import { ConfirmationService } from 'primeng/api';
     
     .pos-info {
       display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .pos-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #8B5CF6;
+      
+      i { color: white; font-size: 0.875rem; }
     }
     
     .pos-name { font-weight: 500; color: #1E293B; }
-    .pos-desc { font-size: 0.75rem; color: #64748B; }
+    
     .text-center { text-align: center; }
     .action-buttons { display: flex; gap: 0.25rem; }
     .dialog-content { padding: 0.5rem 0; }
+    
+    .loading-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 3rem;
+      color: #64748B;
+      
+      i { font-size: 1.5rem; }
+    }
     
     .empty-state {
       padding: 2rem;
@@ -202,118 +192,122 @@ import { ConfirmationService } from 'primeng/api';
     .w-full { width: 100%; }
   `]
 })
-export class PositionListComponent {
+export class PositionListComponent implements OnInit {
+  private positionService = inject(PositionService);
+  private confirmationService = inject(ConfirmationService);
+  private notificationService = inject(NotificationService);
+
   searchText = '';
   dialogVisible = false;
   isEditMode = false;
+  loading = false;
+  saving = false;
   
-  departments = [
-    { id: 1, name: 'Human Resources' },
-    { id: 2, name: 'Information Technology' },
-    { id: 3, name: 'Finance' },
-    { id: 4, name: 'Marketing' },
-  ];
-  
-  levels = [
-    { name: 'Level 1 - Entry', value: 1 },
-    { name: 'Level 2 - Junior', value: 2 },
-    { name: 'Level 3 - Mid', value: 3 },
-    { name: 'Level 4 - Senior', value: 4 },
-    { name: 'Level 5 - Lead', value: 5 },
-  ];
-  
-  positions = [
-    { id: 1, name: 'HR Manager', department: 'Human Resources', departmentId: 1, level: 5, description: 'Manajer SDM', isActive: true },
-    { id: 2, name: 'Senior Developer', department: 'Information Technology', departmentId: 2, level: 4, description: 'Pengembang senior', isActive: true },
-    { id: 3, name: 'Junior Developer', department: 'Information Technology', departmentId: 2, level: 2, description: 'Pengembang junior', isActive: true },
-    { id: 4, name: 'Accountant', department: 'Finance', departmentId: 3, level: 3, description: 'Akuntan', isActive: true },
-    { id: 5, name: 'Marketing Staff', department: 'Marketing', departmentId: 4, level: 2, description: 'Staff pemasaran', isActive: false },
-  ];
-  
-  filteredData = [...this.positions];
+  positions: Position[] = [];
+  filteredData: Position[] = [];
   
   formData = {
-    id: null as number | null,
-    name: '',
-    departmentId: null as number | null,
-    level: null as number | null,
-    description: ''
+    id: null as string | null,
+    namaJabatan: ''
   };
-  
-  constructor(private confirmationService: ConfirmationService) {}
-  
-  getLevelSeverity(level: number): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' | undefined {
-    if (level >= 5) return 'danger';
-    if (level >= 4) return 'warn';
-    if (level >= 3) return 'info';
-    return 'secondary';
+
+  ngOnInit(): void {
+    this.loadPositions();
+  }
+
+  loadPositions(): void {
+    this.loading = true;
+    this.positionService.getAll().subscribe({
+      next: (data) => {
+        this.positions = data;
+        this.filteredData = [...data];
+        this.loading = false;
+      },
+      error: (err) => {
+        this.loading = false;
+        this.notificationService.error('Error', 'Gagal memuat data jabatan');
+        console.error('Load positions error:', err);
+      }
+    });
   }
   
   onSearch(): void {
     const term = this.searchText.toLowerCase();
     this.filteredData = this.positions.filter(p => 
-      p.name.toLowerCase().includes(term) || 
-      p.department.toLowerCase().includes(term)
+      p.namaJabatan.toLowerCase().includes(term)
     );
   }
   
   openDialog(): void {
     this.isEditMode = false;
-    this.formData = { id: null, name: '', departmentId: null, level: null, description: '' };
+    this.formData = { id: null, namaJabatan: '' };
     this.dialogVisible = true;
   }
   
-  editPosition(pos: any): void {
+  editPosition(pos: Position): void {
     this.isEditMode = true;
-    this.formData = { ...pos };
+    this.formData = { id: pos.id, namaJabatan: pos.namaJabatan };
     this.dialogVisible = true;
   }
   
   savePosition(): void {
-    if (!this.formData.name || !this.formData.departmentId || !this.formData.level) return;
-    
-    const dept = this.departments.find(d => d.id === this.formData.departmentId);
-    
-    if (this.isEditMode) {
-      const index = this.positions.findIndex(p => p.id === this.formData.id);
-      if (index > -1) {
-        this.positions[index] = { 
-          ...this.positions[index], 
-          id: this.formData.id!,
-          name: this.formData.name,
-          departmentId: this.formData.departmentId!,
-          level: this.formData.level!,
-          description: this.formData.description,
-          department: dept?.name || ''
-        };
-      }
-    } else {
-      const newId = Math.max(...this.positions.map(p => p.id)) + 1;
-      this.positions.push({
-        id: newId,
-        name: this.formData.name,
-        department: dept?.name || '',
-        departmentId: this.formData.departmentId!,
-        level: this.formData.level!,
-        description: this.formData.description,
-        isActive: true
-      });
+    if (!this.formData.namaJabatan) {
+      this.notificationService.warn('Peringatan', 'Nama jabatan harus diisi');
+      return;
     }
     
-    this.filteredData = [...this.positions];
-    this.dialogVisible = false;
+    this.saving = true;
+    const request = { namaJabatan: this.formData.namaJabatan };
+    
+    if (this.isEditMode && this.formData.id) {
+      this.positionService.update(this.formData.id, request).subscribe({
+        next: () => {
+          this.notificationService.success('Berhasil', 'Jabatan berhasil diperbarui');
+          this.dialogVisible = false;
+          this.saving = false;
+          this.loadPositions();
+        },
+        error: (err) => {
+          this.saving = false;
+          this.notificationService.error('Error', 'Gagal memperbarui jabatan');
+          console.error('Update error:', err);
+        }
+      });
+    } else {
+      this.positionService.create(request).subscribe({
+        next: () => {
+          this.notificationService.success('Berhasil', 'Jabatan berhasil ditambahkan');
+          this.dialogVisible = false;
+          this.saving = false;
+          this.loadPositions();
+        },
+        error: (err) => {
+          this.saving = false;
+          this.notificationService.error('Error', 'Gagal menambahkan jabatan');
+          console.error('Create error:', err);
+        }
+      });
+    }
   }
   
-  confirmDelete(pos: any): void {
+  confirmDelete(pos: Position): void {
     this.confirmationService.confirm({
-      message: `Apakah Anda yakin ingin menghapus jabatan "${pos.name}"?`,
+      message: `Apakah Anda yakin ingin menghapus jabatan "${pos.namaJabatan}"?`,
       header: 'Konfirmasi Hapus',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Ya, Hapus',
       rejectLabel: 'Batal',
       accept: () => {
-        this.positions = this.positions.filter(p => p.id !== pos.id);
-        this.filteredData = [...this.positions];
+        this.positionService.delete(pos.id).subscribe({
+          next: () => {
+            this.notificationService.success('Berhasil', 'Jabatan berhasil dihapus');
+            this.loadPositions();
+          },
+          error: (err) => {
+            this.notificationService.error('Error', 'Gagal menghapus jabatan');
+            console.error('Delete error:', err);
+          }
+        });
       }
     });
   }

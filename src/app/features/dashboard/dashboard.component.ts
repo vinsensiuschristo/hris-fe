@@ -7,6 +7,7 @@ import { UIChart } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { AuthService } from '../../core/services/auth.service';
+import { DashboardService, MyDashboardStats } from '../../core/services/dashboard.service';
 
 interface DashboardStats {
   totalEmployees: number;
@@ -40,22 +41,22 @@ interface RecentRequest {
 })
 export class DashboardComponent implements OnInit {
   private authService = inject(AuthService);
+  private dashboardService = inject(DashboardService);
 
-  // Dashboard data (will be fetched from API in production)
+  loading = signal<boolean>(true);
+
+  // Admin/HR dashboard data
   stats = signal<DashboardStats>({
-    totalEmployees: 150,
-    pendingLeaveRequests: 12,
-    pendingOvertimeRequests: 8,
-    approvedThisMonth: 45
+    totalEmployees: 0,
+    pendingLeaveRequests: 0,
+    pendingOvertimeRequests: 0,
+    approvedThisMonth: 0
   });
 
-  recentRequests = signal<RecentRequest[]>([
-    { id: 1, employeeName: 'Ahmad Fauzi', type: 'leave', status: 'PENDING', date: '2024-01-15' },
-    { id: 2, employeeName: 'Siti Rahayu', type: 'overtime', status: 'APPROVED', date: '2024-01-14' },
-    { id: 3, employeeName: 'Budi Santoso', type: 'leave', status: 'REJECTED', date: '2024-01-13' },
-    { id: 4, employeeName: 'Dewi Lestari', type: 'overtime', status: 'PENDING', date: '2024-01-12' },
-    { id: 5, employeeName: 'Eko Prasetyo', type: 'leave', status: 'APPROVED', date: '2024-01-11' },
-  ]);
+  // Employee dashboard data
+  myStats = signal<MyDashboardStats | null>(null);
+
+  recentRequests = signal<RecentRequest[]>([]);
 
   // Chart data
   leaveChartData: any;
@@ -86,8 +87,50 @@ export class DashboardComponent implements OnInit {
     return this.authService.hasAnyRole(['ADMIN', 'HR']);
   }
 
+  get currentKaryawanId(): string | null {
+    return this.currentUser?.employee?.id || null;
+  }
+
   ngOnInit(): void {
     this.initCharts();
+    this.loadDashboardData();
+  }
+
+  private loadDashboardData(): void {
+    this.loading.set(true);
+
+    if (this.isAdminOrHR) {
+      // Load admin/HR stats
+      this.dashboardService.getStats().subscribe({
+        next: (data) => {
+          this.stats.set({
+            totalEmployees: data.totalKaryawan || 0,
+            pendingLeaveRequests: data.leaveSummary?.menunggu || 0,
+            pendingOvertimeRequests: data.overtimeSummary?.menunggu || 0,
+            approvedThisMonth: (data.leaveSummary?.disetujui || 0) + (data.overtimeSummary?.disetujui || 0)
+          });
+          this.loading.set(false);
+        },
+        error: (err) => {
+          console.error('Error loading admin stats:', err);
+          this.loading.set(false);
+        }
+      });
+    } else if (this.currentKaryawanId) {
+      // Load employee stats
+      this.dashboardService.getMyStats(this.currentKaryawanId).subscribe({
+        next: (data) => {
+          this.myStats.set(data);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          console.error('Error loading my stats:', err);
+          this.loading.set(false);
+        }
+      });
+    } else {
+      this.loading.set(false);
+    }
   }
 
   private initCharts(): void {

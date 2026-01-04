@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -8,102 +8,119 @@ import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
 import { Select } from 'primeng/select';
 import { Tooltip } from 'primeng/tooltip';
+import { ProgressSpinner } from 'primeng/progressspinner';
+import { OvertimeRequestService } from '../../../core/services/overtime-request.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { OvertimeRequest } from '../../../core/models';
 
 @Component({
   selector: 'app-overtime-request-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, TableModule, ButtonDirective, InputText, Tag, Select, Tooltip],
+  imports: [CommonModule, FormsModule, RouterModule, TableModule, ButtonDirective, InputText, Tag, Select, Tooltip, ProgressSpinner],
   template: `
     <div class="page-header">
       <div>
         <h1 class="page-title">Pengajuan Lembur</h1>
-        <p class="page-subtitle">Daftar pengajuan lembur Anda</p>
+        <p class="page-subtitle">Daftar pengajuan lembur {{ isAdminOrHR ? 'semua karyawan' : 'Anda' }}</p>
       </div>
       <a routerLink="new" pButton label="Ajukan Lembur Baru" icon="pi pi-plus"></a>
     </div>
     
     <div class="hris-card">
-      <!-- Filter Section -->
-      <div class="table-header">
-        <div class="search-box">
-          <i class="pi pi-search"></i>
-          <input type="text" pInputText placeholder="Cari berdasarkan tanggal..." [(ngModel)]="searchText" (input)="applyFilters()" />
+      @if (loading()) {
+        <div style="text-align: center; padding: 3rem;">
+          <p-progressSpinner strokeWidth="4" />
+          <p style="margin-top: 1rem; color: var(--hris-gray-500);">Memuat data...</p>
         </div>
-        <div class="filter-group">
-          <p-select 
-            [options]="statusOptions" 
-            [(ngModel)]="selectedStatus"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Semua Status"
-            [showClear]="true"
-            (onChange)="applyFilters()"
-            [style]="{'width': '160px'}"
-          />
-          <span class="data-count">Total: {{ filteredRequests.length }} pengajuan</span>
+      } @else {
+        <!-- Filter Section -->
+        <div class="table-header">
+          <div class="search-box">
+            <i class="pi pi-search"></i>
+            <input type="text" pInputText placeholder="Cari..." [(ngModel)]="searchText" (input)="applyFilters()" />
+          </div>
+          <div class="filter-group">
+            <p-select 
+              [options]="statusOptions" 
+              [(ngModel)]="selectedStatus"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Semua Status"
+              [showClear]="true"
+              (onChange)="applyFilters()"
+              [style]="{'width': '160px'}"
+            />
+            <span class="data-count">Total: {{ filteredRequests().length }} pengajuan</span>
+          </div>
         </div>
-      </div>
-      
-      <p-table 
-        [value]="filteredRequests" 
-        [paginator]="true" 
-        [rows]="10" 
-        [rowsPerPageOptions]="[10, 20, 50]" 
-        [showCurrentPageReport]="true" 
-        currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
-        styleClass="p-datatable-sm"
-      >
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Tanggal Lembur</th>
-            <th>Waktu</th>
-            <th style="width: 80px; text-align: center">Jam</th>
-            <th>Alasan</th>
-            <th style="width: 120px">Status</th>
-            <th style="width: 80px">Aksi</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-request>
-          <tr>
-            <td>
-              <div class="date-cell">
-                <i class="pi pi-calendar"></i>
-                <span>{{ request.date }}</span>
-              </div>
-            </td>
-            <td>
-              <div class="time-range">
-                <span class="time-value">{{ request.startTime }}</span>
-                <i class="pi pi-arrow-right"></i>
-                <span class="time-value">{{ request.endTime }}</span>
-              </div>
-            </td>
-            <td class="text-center">
-              <span class="hours-badge">{{ request.totalHours }}</span>
-            </td>
-            <td>
-              <span class="reason-text" [pTooltip]="request.reason">{{ request.reason | slice:0:40 }}{{ request.reason.length > 40 ? '...' : '' }}</span>
-            </td>
-            <td>
-              <p-tag [value]="request.status" [severity]="getStatusSeverity(request.status)" />
-            </td>
-            <td>
-              <a [routerLink]="[request.id]" pButton icon="pi pi-eye" [text]="true" [rounded]="true" severity="info" pTooltip="Lihat Detail"></a>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="6" class="text-center p-4">
-              <div class="empty-state">
-                <i class="pi pi-clock empty-icon"></i>
-                <h4 class="empty-title">Belum ada pengajuan lembur</h4>
-                <p class="empty-description">Klik tombol "Ajukan Lembur Baru" untuk membuat pengajuan</p>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+        
+        <p-table 
+          [value]="filteredRequests()" 
+          [paginator]="true" 
+          [rows]="10" 
+          [rowsPerPageOptions]="[10, 20, 50]" 
+          [showCurrentPageReport]="true" 
+          currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
+          styleClass="p-datatable-sm"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              @if (isAdminOrHR) {
+                <th>Karyawan</th>
+              }
+              <th>Tanggal Lembur</th>
+              <th>Waktu</th>
+              <th style="width: 80px; text-align: center">Jam</th>
+              <th style="width: 120px; text-align: right">Est. Biaya</th>
+              <th style="width: 120px">Status</th>
+              <th style="width: 80px">Aksi</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-request>
+            <tr>
+              @if (isAdminOrHR) {
+                <td>{{ request.karyawan?.nama || '-' }}</td>
+              }
+              <td>
+                <div class="date-cell">
+                  <i class="pi pi-calendar"></i>
+                  <span>{{ formatDate(request.tglLembur) }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="time-range">
+                  <span class="time-value">{{ request.jamMulai }}</span>
+                  <i class="pi pi-arrow-right"></i>
+                  <span class="time-value">{{ request.jamSelesai }}</span>
+                </div>
+              </td>
+              <td class="text-center">
+                <span class="hours-badge">{{ request.durasi }}</span>
+              </td>
+              <td style="text-align: right;">
+                <span class="cost-value">{{ formatCurrency(request.estimasiBiaya) }}</span>
+              </td>
+              <td>
+                <p-tag [value]="getStatusLabel(request.status?.namaStatus)" [severity]="getStatusSeverity(request.status?.namaStatus)" />
+              </td>
+              <td>
+                <a [routerLink]="[request.id]" pButton icon="pi pi-eye" [text]="true" [rounded]="true" severity="info" pTooltip="Lihat Detail"></a>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="isAdminOrHR ? 7 : 6" class="text-center p-4">
+                <div class="empty-state">
+                  <i class="pi pi-clock empty-icon"></i>
+                  <h4 class="empty-title">Belum ada pengajuan lembur</h4>
+                  <p class="empty-description">Klik tombol "Ajukan Lembur Baru" untuk membuat pengajuan</p>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
     </div>
   `,
   styles: [`
@@ -189,10 +206,10 @@ import { Tooltip } from 'primeng/tooltip';
       font-weight: 700;
       font-size: 1rem;
     }
-    
-    .reason-text {
-      font-size: 0.875rem;
-      color: #64748B;
+
+    .cost-value {
+      font-weight: 600;
+      color: #059669;
     }
     
     .empty-state {
@@ -218,40 +235,112 @@ import { Tooltip } from 'primeng/tooltip';
     }
   `]
 })
-export class OvertimeRequestListComponent {
+export class OvertimeRequestListComponent implements OnInit {
+  private overtimeRequestService = inject(OvertimeRequestService);
+  private authService = inject(AuthService);
+
+  loading = signal<boolean>(true);
+  overtimeRequests = signal<OvertimeRequest[]>([]);
+  filteredRequests = signal<OvertimeRequest[]>([]);
+
   searchText = '';
   selectedStatus: string | null = null;
   
   statusOptions = [
-    { label: 'Menunggu', value: 'Menunggu' },
-    { label: 'Disetujui', value: 'Disetujui' },
-    { label: 'Ditolak', value: 'Ditolak' }
+    { label: 'Menunggu', value: 'MENUNGGU_PERSETUJUAN' },
+    { label: 'Disetujui', value: 'DISETUJUI' },
+    { label: 'Ditolak', value: 'DITOLAK' }
   ];
-  
-  overtimeRequests = [
-    { id: 1, date: '15 Jan 2024', startTime: '18:00', endTime: '21:00', totalHours: 3, reason: 'Deadline proyek sistem inventory', status: 'Menunggu' },
-    { id: 2, date: '12 Jan 2024', startTime: '17:00', endTime: '20:00', totalHours: 3, reason: 'Persiapan presentasi klien', status: 'Disetujui' },
-    { id: 3, date: '10 Jan 2024', startTime: '18:00', endTime: '22:00', totalHours: 4, reason: 'Perbaikan bug sistem keuangan', status: 'Disetujui' },
-    { id: 4, date: '5 Jan 2024', startTime: '19:00', endTime: '21:00', totalHours: 2, reason: 'Meeting dengan tim development', status: 'Ditolak' },
-  ];
-  
-  filteredRequests = [...this.overtimeRequests];
+
+  get isAdminOrHR(): boolean {
+    return this.authService.hasAnyRole(['ADMIN', 'HR']);
+  }
+
+  get currentKaryawanId(): string | null {
+    return this.authService.currentUser?.employee?.id || null;
+  }
+
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  private loadData(): void {
+    this.loading.set(true);
+    
+    if (this.isAdminOrHR) {
+      // Admin/HR sees all overtime requests
+      this.overtimeRequestService.getAll().subscribe({
+        next: (data) => {
+          this.overtimeRequests.set(data);
+          this.filteredRequests.set(data);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          console.error('Error loading overtime requests:', err);
+          this.overtimeRequests.set([]);
+          this.filteredRequests.set([]);
+          this.loading.set(false);
+        }
+      });
+    } else if (this.currentKaryawanId) {
+      // Employee sees only their own requests
+      this.overtimeRequestService.getByKaryawanId(this.currentKaryawanId).subscribe({
+        next: (data) => {
+          this.overtimeRequests.set(data);
+          this.filteredRequests.set(data);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          console.error('Error loading overtime requests:', err);
+          this.overtimeRequests.set([]);
+          this.filteredRequests.set([]);
+          this.loading.set(false);
+        }
+      });
+    } else {
+      this.loading.set(false);
+    }
+  }
   
   applyFilters(): void {
-    this.filteredRequests = this.overtimeRequests.filter(req => {
+    const all = this.overtimeRequests();
+    const filtered = all.filter(req => {
+      const statusName = req.status?.namaStatus || '';
+      const karyawanName = req.karyawan?.nama || '';
       const matchSearch = !this.searchText || 
-        req.date.toLowerCase().includes(this.searchText.toLowerCase()) ||
-        req.reason.toLowerCase().includes(this.searchText.toLowerCase());
-      const matchStatus = !this.selectedStatus || req.status === this.selectedStatus;
+        karyawanName.toLowerCase().includes(this.searchText.toLowerCase()) ||
+        this.formatDate(req.tglLembur).toLowerCase().includes(this.searchText.toLowerCase());
+      const matchStatus = !this.selectedStatus || statusName === this.selectedStatus;
       return matchSearch && matchStatus;
     });
+    this.filteredRequests.set(filtered);
+  }
+
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  formatCurrency(amount: number): string {
+    if (!amount) return 'Rp 0';
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+  }
+
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'MENUNGGU_PERSETUJUAN': return 'Menunggu';
+      case 'DISETUJUI': return 'Disetujui';
+      case 'DITOLAK': return 'Ditolak';
+      default: return status || '-';
+    }
   }
 
   getStatusSeverity(status: string): 'success' | 'warn' | 'danger' | 'info' | 'secondary' | 'contrast' | undefined {
     switch (status) {
-      case 'Disetujui': return 'success';
-      case 'Menunggu': return 'warn';
-      case 'Ditolak': return 'danger';
+      case 'DISETUJUI': return 'success';
+      case 'MENUNGGU_PERSETUJUAN': return 'warn';
+      case 'DITOLAK': return 'danger';
       default: return 'info';
     }
   }

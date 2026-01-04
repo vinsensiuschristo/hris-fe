@@ -34,16 +34,28 @@ export class SidebarComponent implements OnInit {
         routerLink: '/dashboard'
       },
       {
+        label: 'Kehadiran',
+        icon: 'pi pi-check-circle',
+        routerLink: '/attendance',
+        roles: ['KARYAWAN', 'HR', 'ADMIN']
+      },
+      {
+        label: 'Profil Saya',
+        icon: 'pi pi-user',
+        routerLink: '/profile',
+        roles: ['KARYAWAN']
+      },
+      {
         label: 'Pengajuan Cuti',
         icon: 'pi pi-calendar',
         routerLink: '/leave-requests',
-        roles: ['EMPLOYEE', 'HR', 'ADMIN']
+        roles: ['KARYAWAN', 'HR', 'ADMIN']
       },
       {
         label: 'Pengajuan Lembur',
         icon: 'pi pi-clock',
         routerLink: '/overtime-requests',
-        roles: ['EMPLOYEE', 'HR', 'ADMIN']
+        roles: ['KARYAWAN', 'HR', 'ADMIN']
       },
       {
         label: 'Persetujuan',

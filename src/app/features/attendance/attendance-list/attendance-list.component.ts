@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -265,6 +265,11 @@ export class AttendanceListComponent implements OnInit {
     return this.authService.hasAnyRole(['ADMIN', 'HR']);
   }
 
+  get currentKaryawanId(): string | null {
+    const user = this.authService.currentUser;
+    return user?.employee?.id || null;
+  }
+
   ngOnInit(): void {
     this.setDefaultFilters();
     this.loadAttendances();
@@ -331,9 +336,18 @@ export class AttendanceListComponent implements OnInit {
   }
 
   checkIn(): void {
+    if (!this.currentKaryawanId) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Akun Anda belum terhubung dengan data karyawan'
+      });
+      return;
+    }
+
     this.checkingIn.set(true);
     const request: CheckInRequest = {
-      karyawanId: '' // TODO: Get from current user
+      karyawanId: this.currentKaryawanId
     };
     
     this.attendanceService.checkIn(request).subscribe({
@@ -360,9 +374,18 @@ export class AttendanceListComponent implements OnInit {
   }
 
   checkOut(): void {
+    if (!this.currentKaryawanId) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Akun Anda belum terhubung dengan data karyawan'
+      });
+      return;
+    }
+
     this.checkingOut.set(true);
     const request: CheckOutRequest = {
-      karyawanId: '' // TODO: Get from current user
+      karyawanId: this.currentKaryawanId
     };
     
     this.attendanceService.checkOut(request).subscribe({

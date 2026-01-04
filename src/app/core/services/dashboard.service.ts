@@ -9,6 +9,20 @@ import {
   LeaveEmployee 
 } from '../models';
 
+export interface MyDashboardStats {
+  attendanceThisMonth: number;
+  lateThisMonth: number;
+  totalLateMenit: number;
+  sisaCuti: number;
+  todayStatus: 'HADIR' | 'TERLAMBAT' | 'BELUM_CHECKIN' | 'SUDAH_CHECKOUT' | null;
+  todayCheckIn: string | null;
+  todayCheckOut: string | null;
+  pendingLeaveRequests: number;
+  pendingOvertimeRequests: number;
+  approvedLeaveThisMonth: number;
+  approvedOvertimeThisMonth: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -22,6 +36,10 @@ export class DashboardService {
     departmentId?: string;
   }): Observable<DashboardStats> {
     return this.api.get<DashboardStats>(`${this.endpoint}/stats`, params);
+  }
+
+  getMyStats(karyawanId: string): Observable<MyDashboardStats> {
+    return this.api.get<MyDashboardStats>(`${this.endpoint}/my-stats`, { karyawanId });
   }
 
   getMonthlyStats(year: number, month: number, departmentId?: string): Observable<DashboardStats> {

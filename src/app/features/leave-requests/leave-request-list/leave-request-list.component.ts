@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -8,101 +8,118 @@ import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
 import { Select } from 'primeng/select';
 import { Tooltip } from 'primeng/tooltip';
+import { ProgressSpinner } from 'primeng/progressspinner';
+import { LeaveRequestService } from '../../../core/services/leave-request.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { LeaveRequest } from '../../../core/models';
 
 @Component({
   selector: 'app-leave-request-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, TableModule, ButtonDirective, InputText, Tag, Select, Tooltip],
+  imports: [CommonModule, FormsModule, RouterModule, TableModule, ButtonDirective, InputText, Tag, Select, Tooltip, ProgressSpinner],
   template: `
     <div class="page-header">
       <div>
         <h1 class="page-title">Pengajuan Cuti</h1>
-        <p class="page-subtitle">Daftar pengajuan cuti Anda</p>
+        <p class="page-subtitle">Daftar pengajuan cuti {{ isAdminOrHR ? 'semua karyawan' : 'Anda' }}</p>
       </div>
       <a routerLink="new" pButton label="Ajukan Cuti Baru" icon="pi pi-plus"></a>
     </div>
     
     <div class="hris-card">
-      <!-- Filter Section -->
-      <div class="table-header">
-        <div class="search-box">
-          <i class="pi pi-search"></i>
-          <input type="text" pInputText placeholder="Cari tipe cuti..." [(ngModel)]="searchText" (input)="applyFilters()" />
+      @if (loading()) {
+        <div style="text-align: center; padding: 3rem;">
+          <p-progressSpinner strokeWidth="4" />
+          <p style="margin-top: 1rem; color: var(--hris-gray-500);">Memuat data...</p>
         </div>
-        <div class="filter-group">
-          <p-select 
-            [options]="statusOptions" 
-            [(ngModel)]="selectedStatus"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Semua Status"
-            [showClear]="true"
-            (onChange)="applyFilters()"
-            [style]="{'width': '160px'}"
-          />
-          <span class="data-count">Total: {{ filteredRequests.length }} pengajuan</span>
+      } @else {
+        <!-- Filter Section -->
+        <div class="table-header">
+          <div class="search-box">
+            <i class="pi pi-search"></i>
+            <input type="text" pInputText placeholder="Cari tipe cuti..." [(ngModel)]="searchText" (input)="applyFilters()" />
+          </div>
+          <div class="filter-group">
+            <p-select 
+              [options]="statusOptions" 
+              [(ngModel)]="selectedStatus"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Semua Status"
+              [showClear]="true"
+              (onChange)="applyFilters()"
+              [style]="{'width': '160px'}"
+            />
+            <span class="data-count">Total: {{ filteredRequests().length }} pengajuan</span>
+          </div>
         </div>
-      </div>
-      
-      <p-table 
-        [value]="filteredRequests" 
-        [paginator]="true" 
-        [rows]="10" 
-        [rowsPerPageOptions]="[10, 20, 50]" 
-        [showCurrentPageReport]="true" 
-        currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
-        styleClass="p-datatable-sm"
-      >
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Tanggal Pengajuan</th>
-            <th>Tipe Cuti</th>
-            <th>Periode</th>
-            <th style="width: 80px; text-align: center">Hari</th>
-            <th style="width: 120px">Status</th>
-            <th style="width: 80px">Aksi</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-request>
-          <tr>
-            <td>
-              <span class="date-created">{{ request.createdAt }}</span>
-            </td>
-            <td>
-              <span class="leave-type-badge" [class]="getTypeClass(request.leaveType)">
-                {{ request.leaveType }}
-              </span>
-            </td>
-            <td>
-              <div class="date-range">
-                <span>{{ request.startDate }}</span>
-                <i class="pi pi-arrow-right"></i>
-                <span>{{ request.endDate }}</span>
-              </div>
-            </td>
-            <td class="text-center">
-              <span class="days-badge">{{ request.totalDays }}</span>
-            </td>
-            <td>
-              <p-tag [value]="request.status" [severity]="getStatusSeverity(request.status)" />
-            </td>
-            <td>
-              <a [routerLink]="[request.id]" pButton icon="pi pi-eye" [text]="true" [rounded]="true" severity="info" pTooltip="Lihat Detail"></a>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="6" class="text-center p-4">
-              <div class="empty-state">
-                <i class="pi pi-calendar empty-icon"></i>
-                <h4 class="empty-title">Belum ada pengajuan cuti</h4>
-                <p class="empty-description">Klik tombol "Ajukan Cuti Baru" untuk membuat pengajuan</p>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+        
+        <p-table 
+          [value]="filteredRequests()" 
+          [paginator]="true" 
+          [rows]="10" 
+          [rowsPerPageOptions]="[10, 20, 50]" 
+          [showCurrentPageReport]="true" 
+          currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
+          styleClass="p-datatable-sm"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              @if (isAdminOrHR) {
+                <th>Karyawan</th>
+              }
+              <th>Tanggal Pengajuan</th>
+              <th>Tipe Cuti</th>
+              <th>Periode</th>
+              <th style="width: 80px; text-align: center">Hari</th>
+              <th style="width: 120px">Status</th>
+              <th style="width: 80px">Aksi</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-request>
+            <tr>
+              @if (isAdminOrHR) {
+                <td>{{ request.karyawan?.nama || '-' }}</td>
+              }
+              <td>
+                <span class="date-created">{{ formatDate(request.createdAt) }}</span>
+              </td>
+              <td>
+                <span class="leave-type-badge" [class]="getTypeClass(request.jenisCuti?.namaJenis || '')">
+                  {{ request.jenisCuti?.namaJenis || '-' }}
+                </span>
+              </td>
+              <td>
+                <div class="date-range">
+                  <span>{{ formatDate(request.tglMulai) }}</span>
+                  <i class="pi pi-arrow-right"></i>
+                  <span>{{ formatDate(request.tglSelesai) }}</span>
+                </div>
+              </td>
+              <td class="text-center">
+                <span class="days-badge">{{ calculateDays(request.tglMulai, request.tglSelesai) }}</span>
+              </td>
+              <td>
+                <p-tag [value]="getStatusLabel(request.status?.namaStatus)" [severity]="getStatusSeverity(request.status?.namaStatus)" />
+              </td>
+              <td>
+                <a [routerLink]="[request.id]" pButton icon="pi pi-eye" [text]="true" [rounded]="true" severity="info" pTooltip="Lihat Detail"></a>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="isAdminOrHR ? 7 : 6" class="text-center p-4">
+                <div class="empty-state">
+                  <i class="pi pi-calendar empty-icon"></i>
+                  <h4 class="empty-title">Belum ada pengajuan cuti</h4>
+                  <p class="empty-description">Klik tombol "Ajukan Cuti Baru" untuk membuat pengajuan</p>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
     </div>
   `,
   styles: [`
@@ -221,32 +238,98 @@ import { Tooltip } from 'primeng/tooltip';
     }
   `]
 })
-export class LeaveRequestListComponent {
+export class LeaveRequestListComponent implements OnInit {
+  private leaveRequestService = inject(LeaveRequestService);
+  private authService = inject(AuthService);
+
+  loading = signal<boolean>(true);
+  leaveRequests = signal<LeaveRequest[]>([]);
+  filteredRequests = signal<LeaveRequest[]>([]);
+
   searchText = '';
   selectedStatus: string | null = null;
   
   statusOptions = [
-    { label: 'Menunggu', value: 'Menunggu' },
-    { label: 'Disetujui', value: 'Disetujui' },
-    { label: 'Ditolak', value: 'Ditolak' }
+    { label: 'Menunggu', value: 'MENUNGGU_PERSETUJUAN' },
+    { label: 'Disetujui', value: 'DISETUJUI' },
+    { label: 'Ditolak', value: 'DITOLAK' }
   ];
-  
-  leaveRequests = [
-    { id: 1, createdAt: '15 Jan 2024', leaveType: 'Cuti Tahunan', startDate: '20 Jan 2024', endDate: '22 Jan 2024', totalDays: 3, status: 'Menunggu' },
-    { id: 2, createdAt: '10 Jan 2024', leaveType: 'Cuti Sakit', startDate: '11 Jan 2024', endDate: '12 Jan 2024', totalDays: 2, status: 'Disetujui' },
-    { id: 3, createdAt: '5 Jan 2024', leaveType: 'Cuti Tahunan', startDate: '8 Jan 2024', endDate: '8 Jan 2024', totalDays: 1, status: 'Ditolak' },
-    { id: 4, createdAt: '2 Jan 2024', leaveType: 'Cuti Khusus', startDate: '5 Jan 2024', endDate: '6 Jan 2024', totalDays: 2, status: 'Disetujui' },
-  ];
-  
-  filteredRequests = [...this.leaveRequests];
+
+  get isAdminOrHR(): boolean {
+    return this.authService.hasAnyRole(['ADMIN', 'HR']);
+  }
+
+  get currentKaryawanId(): string | null {
+    return this.authService.currentUser?.employee?.id || null;
+  }
+
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  private loadData(): void {
+    this.loading.set(true);
+    
+    if (this.isAdminOrHR) {
+      // Admin/HR sees all leave requests
+      this.leaveRequestService.getAll().subscribe({
+        next: (data) => {
+          this.leaveRequests.set(data);
+          this.filteredRequests.set(data);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          console.error('Error loading leave requests:', err);
+          this.leaveRequests.set([]);
+          this.filteredRequests.set([]);
+          this.loading.set(false);
+        }
+      });
+    } else if (this.currentKaryawanId) {
+      // Employee sees only their own requests
+      this.leaveRequestService.getByKaryawanId(this.currentKaryawanId).subscribe({
+        next: (data) => {
+          this.leaveRequests.set(data);
+          this.filteredRequests.set(data);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          console.error('Error loading leave requests:', err);
+          this.leaveRequests.set([]);
+          this.filteredRequests.set([]);
+          this.loading.set(false);
+        }
+      });
+    } else {
+      this.loading.set(false);
+    }
+  }
   
   applyFilters(): void {
-    this.filteredRequests = this.leaveRequests.filter(req => {
+    const all = this.leaveRequests();
+    const filtered = all.filter(req => {
+      const typeName = req.jenisCuti?.namaJenis || '';
+      const statusName = req.status?.namaStatus || '';
       const matchSearch = !this.searchText || 
-        req.leaveType.toLowerCase().includes(this.searchText.toLowerCase());
-      const matchStatus = !this.selectedStatus || req.status === this.selectedStatus;
+        typeName.toLowerCase().includes(this.searchText.toLowerCase());
+      const matchStatus = !this.selectedStatus || statusName === this.selectedStatus;
       return matchSearch && matchStatus;
     });
+    this.filteredRequests.set(filtered);
+  }
+
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  calculateDays(start: string, end: string): number {
+    if (!start || !end) return 0;
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
   }
   
   getTypeClass(type: string): string {
@@ -256,11 +339,20 @@ export class LeaveRequestListComponent {
     return 'default';
   }
 
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'MENUNGGU_PERSETUJUAN': return 'Menunggu';
+      case 'DISETUJUI': return 'Disetujui';
+      case 'DITOLAK': return 'Ditolak';
+      default: return status || '-';
+    }
+  }
+
   getStatusSeverity(status: string): 'success' | 'warn' | 'danger' | 'info' | 'secondary' | 'contrast' | undefined {
     switch (status) {
-      case 'Disetujui': return 'success';
-      case 'Menunggu': return 'warn';
-      case 'Ditolak': return 'danger';
+      case 'DISETUJUI': return 'success';
+      case 'MENUNGGU_PERSETUJUAN': return 'warn';
+      case 'DITOLAK': return 'danger';
       default: return 'info';
     }
   }

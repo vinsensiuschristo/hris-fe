@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -11,6 +11,10 @@ import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { Dialog } from 'primeng/dialog';
 import { Textarea } from 'primeng/textarea';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { OvertimeRequestService } from '../../../core/services/overtime-request.service';
+import { OvertimeRequest } from '../../../core/models';
 
 @Component({
   selector: 'app-overtime-approval',
@@ -27,9 +31,12 @@ import { Textarea } from 'primeng/textarea';
     Select,
     DatePicker,
     Dialog,
-    Textarea
+    Textarea,
+    ToastModule
   ],
+  providers: [MessageService],
   template: `
+    <p-toast />
     <div class="page-header">
       <div>
         <h1 class="page-title">Persetujuan Lembur</h1>
@@ -122,7 +129,7 @@ import { Textarea } from 'primeng/textarea';
             <th>Tanggal</th>
             <th>Waktu</th>
             <th style="width: 80px">Jam</th>
-            <th>Alasan</th>
+            <th>Biaya</th>
             <th style="width: 100px">Status</th>
             <th style="width: 140px">Aksi</th>
           </tr>
@@ -131,34 +138,39 @@ import { Textarea } from 'primeng/textarea';
           <tr>
             <td>
               <div class="employee-info">
-                <span class="employee-name">{{ request.employeeName }}</span>
-                <span class="employee-dept">{{ request.department }}</span>
+                <span class="employee-name">{{ request.karyawan?.nama || '-' }}</span>
+                <span class="employee-dept">{{ request.karyawan?.departemen?.namaDepartement || '-' }}</span>
               </div>
             </td>
-            <td>{{ request.date }}</td>
+            <td>{{ request.tglLembur }}</td>
             <td>
               <div class="time-range">
-                <span class="time-badge">{{ request.startTime }}</span>
+                <span class="time-badge">{{ request.jamMulai }}</span>
                 <i class="pi pi-arrow-right"></i>
-                <span class="time-badge">{{ request.endTime }}</span>
+                <span class="time-badge">{{ request.jamSelesai }}</span>
               </div>
             </td>
             <td class="text-center">
-              <span class="hours-badge">{{ request.totalHours }}h</span>
+              <span class="hours-badge">{{ request.durasi }}h</span>
             </td>
-            <td class="reason-cell">{{ request.reason }}</td>
+            <td class="reason-cell">Rp {{ request.estimasiBiaya | number:'1.0-0' }}</td>
             <td>
-              <p-tag [value]="request.status" [severity]="getStatusSeverity(request.status)" />
+              <p-tag [value]="getStatusLabel(request.status?.namaStatus)" [severity]="getStatusSeverity(request.status?.namaStatus)" />
             </td>
             <td>
-              @if (request.status === 'Menunggu') {
+              @if (request.status?.namaStatus === 'MENUNGGU_PERSETUJUAN') {
                 <div class="action-buttons">
                   <button pButton icon="pi pi-check" severity="success" [rounded]="true" [text]="true" pTooltip="Setujui" (click)="approve(request)"></button>
                   <button pButton icon="pi pi-times" severity="danger" [rounded]="true" [text]="true" pTooltip="Tolak" (click)="openRejectDialog(request)"></button>
-                  <button pButton icon="pi pi-eye" severity="info" [rounded]="true" [text]="true" pTooltip="Detail"></button>
+                  <a [routerLink]="['/approvals/overtime', request.id]" pButton icon="pi pi-eye" severity="info" [rounded]="true" [text]="true" pTooltip="Detail"></a>
+                </div>
+              } @else if (request.status?.namaStatus === 'MENUNGGU_REIMBURSE') {
+                <div class="action-buttons">
+                  <button pButton icon="pi pi-wallet" severity="success" [rounded]="true" [text]="true" pTooltip="Reimburse" (click)="reimburse(request)"></button>
+                  <a [routerLink]="['/approvals/overtime', request.id]" pButton icon="pi pi-eye" severity="info" [rounded]="true" [text]="true" pTooltip="Detail"></a>
                 </div>
               } @else {
-                <button pButton icon="pi pi-eye" severity="info" [rounded]="true" [text]="true" pTooltip="Lihat Detail"></button>
+                <a [routerLink]="['/approvals/overtime', request.id]" pButton icon="pi pi-eye" severity="info" [rounded]="true" [text]="true" pTooltip="Lihat Detail"></a>
               }
             </td>
           </tr>
@@ -321,19 +333,26 @@ import { Textarea } from 'primeng/textarea';
     }
     
     .w-full { width: 100%; }
+    
+    .loading-container { display: flex; align-items: center; justify-content: center; padding: 3rem; color: #64748B; }
   `]
 })
-export class OvertimeApprovalComponent {
+export class OvertimeApprovalComponent implements OnInit {
+  private overtimeService = inject(OvertimeRequestService);
+  private messageService = inject(MessageService);
+  
+  loading = false;
+  
   filters = {
     search: '',
-    department: null,
-    status: null,
+    department: null as string | null,
+    status: null as string | null,
     dateRange: null
   };
   
   rejectDialogVisible = false;
   rejectReason = '';
-  selectedRequest: any = null;
+  selectedRequest: OvertimeRequest | null = null;
   
   departments = [
     { name: 'IT', value: 'IT' },
@@ -343,69 +362,127 @@ export class OvertimeApprovalComponent {
   ];
   
   statuses = [
-    { name: 'Menunggu', value: 'Menunggu' },
-    { name: 'Disetujui', value: 'Disetujui' },
-    { name: 'Ditolak', value: 'Ditolak' },
+    { name: 'Menunggu', value: 'MENUNGGU_PERSETUJUAN' },
+    { name: 'Menunggu Reimburse', value: 'MENUNGGU_REIMBURSE' },
+    { name: 'Dibayar', value: 'DIBAYAR' },
+    { name: 'Ditolak', value: 'DITOLAK' },
   ];
   
-  pendingRequests = [
-    { id: 1, employeeName: 'Ahmad Fauzi', department: 'IT', date: '2024-01-15', startTime: '18:00', endTime: '21:00', totalHours: 3, reason: 'Deadline proyek', status: 'Menunggu' },
-    { id: 2, employeeName: 'Siti Rahayu', department: 'HR', date: '2024-01-14', startTime: '17:00', endTime: '20:00', totalHours: 3, reason: 'Rekrutmen urgent', status: 'Menunggu' },
-    { id: 3, employeeName: 'Budi Santoso', department: 'Finance', date: '2024-01-13', startTime: '18:00', endTime: '22:00', totalHours: 4, reason: 'Tutup buku bulanan', status: 'Disetujui' },
-    { id: 4, employeeName: 'Dewi Lestari', department: 'Marketing', date: '2024-01-12', startTime: '17:00', endTime: '19:00', totalHours: 2, reason: 'Persiapan event', status: 'Ditolak' },
-  ];
+  allRequests: OvertimeRequest[] = [];
+  filteredData: OvertimeRequest[] = [];
   
-  filteredData = [...this.pendingRequests];
+  ngOnInit(): void {
+    this.loadData();
+  }
+  
+  loadData(): void {
+    this.loading = true;
+    this.overtimeService.getAll().subscribe({
+      next: (data) => {
+        this.allRequests = data;
+        this.applyFilters();
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading overtime requests:', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Gagal memuat data pengajuan lembur' });
+        this.loading = false;
+      }
+    });
+  }
   
   getPendingCount(): number {
-    return this.pendingRequests.filter(r => r.status === 'Menunggu').length;
+    return this.allRequests.filter(r => r.status?.namaStatus === 'MENUNGGU_PERSETUJUAN').length;
   }
   
   getTotalPendingHours(): number {
-    return this.pendingRequests
-      .filter(r => r.status === 'Menunggu')
-      .reduce((sum, r) => sum + r.totalHours, 0);
+    return this.allRequests
+      .filter(r => r.status?.namaStatus === 'MENUNGGU_PERSETUJUAN')
+      .reduce((sum, r) => sum + (r.durasi || 0), 0);
   }
   
-  getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' | undefined {
+  getStatusSeverity(status?: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' | undefined {
     switch (status) {
-      case 'Disetujui': return 'success';
-      case 'Menunggu': return 'warn';
-      case 'Ditolak': return 'danger';
+      case 'DIBAYAR': return 'success';
+      case 'MENUNGGU_REIMBURSE': return 'info';
+      case 'MENUNGGU_PERSETUJUAN': return 'warn';
+      case 'DITOLAK': return 'danger';
       default: return 'info';
+    }
+  }
+
+  getStatusLabel(status?: string): string {
+    switch (status) {
+      case 'MENUNGGU_PERSETUJUAN': return 'Menunggu';
+      case 'MENUNGGU_REIMBURSE': return 'Perlu Reimburse';
+      case 'DIBAYAR': return 'Dibayar';
+      case 'DITOLAK': return 'Ditolak';
+      default: return status || '-';
     }
   }
   
   applyFilters(): void {
-    this.filteredData = this.pendingRequests.filter(r => {
+    this.filteredData = this.allRequests.filter(r => {
       const matchSearch = !this.filters.search || 
-        r.employeeName.toLowerCase().includes(this.filters.search.toLowerCase());
-      const matchDept = !this.filters.department || r.department === this.filters.department;
-      const matchStatus = !this.filters.status || r.status === this.filters.status;
+        r.karyawan?.nama?.toLowerCase().includes(this.filters.search.toLowerCase());
+      const matchDept = !this.filters.department || 
+        r.karyawan?.departemen?.namaDepartement === this.filters.department;
+      const matchStatus = !this.filters.status || r.status?.namaStatus === this.filters.status;
       return matchSearch && matchDept && matchStatus;
     });
   }
   
   resetFilters(): void {
     this.filters = { search: '', department: null, status: null, dateRange: null };
-    this.filteredData = [...this.pendingRequests];
+    this.applyFilters();
   }
   
-  approve(request: any): void {
-    request.status = 'Disetujui';
-    this.filteredData = [...this.filteredData];
+  approve(request: OvertimeRequest): void {
+    this.overtimeService.approve(request.id).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Berhasil', detail: 'Pengajuan lembur disetujui' });
+        this.loadData();
+      },
+      error: (err) => {
+        console.error('Error approving:', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Gagal menyetujui pengajuan' });
+      }
+    });
+  }
+
+  reimburse(request: OvertimeRequest): void {
+    this.overtimeService.reimburse(request.id).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Berhasil', detail: 'Pembayaran lembur berhasil dicatat' });
+        this.loadData();
+      },
+      error: (err) => {
+        console.error('Error reimbursing:', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Gagal memproses pembayaran' });
+      }
+    });
   }
   
-  openRejectDialog(request: any): void {
+  openRejectDialog(request: OvertimeRequest): void {
     this.selectedRequest = request;
     this.rejectReason = '';
     this.rejectDialogVisible = true;
   }
   
   reject(): void {
-    if (!this.rejectReason || !this.selectedRequest) return;
-    this.selectedRequest.status = 'Ditolak';
-    this.filteredData = [...this.filteredData];
-    this.rejectDialogVisible = false;
+    if (!this.rejectReason.trim() || !this.selectedRequest) return;
+    
+    this.overtimeService.reject(this.selectedRequest.id, this.rejectReason).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Berhasil', detail: 'Pengajuan lembur ditolak' });
+        this.rejectDialogVisible = false;
+        this.loadData();
+      },
+      error: (err) => {
+        console.error('Error rejecting:', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Gagal menolak pengajuan' });
+      }
+    });
   }
 }
+

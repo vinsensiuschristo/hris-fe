@@ -80,29 +80,27 @@ import { Attendance, CheckInRequest, CheckOutRequest } from '../../../core/model
     }
 
     <!-- Filter Section -->
-    @if (isAdminOrHR) {
-      <div class="filter-section hris-card mb-4">
-        <div class="filter-item">
-          <label>Tanggal Mulai</label>
-          <input type="date" [(ngModel)]="filterStartDate" (change)="onFilterChange()" class="form-input" />
-        </div>
-        <div class="filter-item">
-          <label>Tanggal Akhir</label>
-          <input type="date" [(ngModel)]="filterEndDate" (change)="onFilterChange()" class="form-input" />
-        </div>
-        <div class="filter-item">
-          <label>Status</label>
-          <select [(ngModel)]="filterStatus" (change)="onFilterChange()" class="form-input">
-            <option value="">Semua Status</option>
-            <option value="HADIR">Hadir</option>
-            <option value="TERLAMBAT">Terlambat</option>
-            <option value="IZIN">Izin</option>
-            <option value="SAKIT">Sakit</option>
-            <option value="ALPHA">Alpha</option>
-          </select>
-        </div>
+    <div class="filter-section hris-card mb-4">
+      <div class="filter-item">
+        <label>Tanggal Mulai</label>
+        <input type="date" [(ngModel)]="filterStartDate" (change)="onFilterChange()" class="form-input" />
       </div>
-    }
+      <div class="filter-item">
+        <label>Tanggal Akhir</label>
+        <input type="date" [(ngModel)]="filterEndDate" (change)="onFilterChange()" class="form-input" />
+      </div>
+      <div class="filter-item">
+        <label>Status</label>
+        <select [(ngModel)]="filterStatus" (change)="onFilterChange()" class="form-input">
+          <option value="">Semua Status</option>
+          <option value="HADIR">Hadir</option>
+          <option value="TERLAMBAT">Terlambat</option>
+          <option value="IZIN">Izin</option>
+          <option value="SAKIT">Sakit</option>
+          <option value="ALPHA">Alpha</option>
+        </select>
+      </div>
+    </div>
     
     <div class="hris-card">
       @if (loading()) {
@@ -286,6 +284,38 @@ export class AttendanceListComponent implements OnInit {
   loadAttendances(): void {
     this.loading.set(true);
     
+    // For non-admin/HR, load only their own attendances
+    if (!this.isAdminOrHR && this.currentKaryawanId) {
+      this.attendanceService.getByKaryawanId(this.currentKaryawanId).subscribe({
+        next: (data) => {
+          // Filter by date range if specified
+          let filtered = data;
+          if (this.filterStartDate) {
+            filtered = filtered.filter(a => a.tanggal >= this.filterStartDate);
+          }
+          if (this.filterEndDate) {
+            filtered = filtered.filter(a => a.tanggal <= this.filterEndDate);
+          }
+          if (this.filterStatus) {
+            filtered = filtered.filter(a => a.status === this.filterStatus);
+          }
+          this.attendances.set(filtered);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          console.error('Error loading attendances:', err);
+          this.loading.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Gagal memuat data kehadiran'
+          });
+        }
+      });
+      return;
+    }
+    
+    // For admin/HR, use filter params
     const params: any = {};
     if (this.filterStartDate) params.startDate = this.filterStartDate;
     if (this.filterEndDate) params.endDate = this.filterEndDate;
@@ -309,12 +339,17 @@ export class AttendanceListComponent implements OnInit {
   }
 
   loadTodayAttendance(): void {
+    if (!this.currentKaryawanId) return;
+    
     const today = new Date().toISOString().split('T')[0];
-    this.attendanceService.getByDate(today).subscribe({
+    
+    // Load current user's attendance for today
+    this.attendanceService.getByKaryawanId(this.currentKaryawanId).subscribe({
       next: (data) => {
-        // Find current user's attendance (simplified - should use user ID)
-        if (data && data.length > 0) {
-          this.todayAttendance.set(data[0]);
+        // Find today's attendance
+        const todayRecord = data.find(a => a.tanggal === today);
+        if (todayRecord) {
+          this.todayAttendance.set(todayRecord);
         }
       },
       error: (err) => {

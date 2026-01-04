@@ -128,6 +128,7 @@ export interface LeaveRequest {
   tglMulai: string;
   tglSelesai: string;
   alasan?: string;
+  alasanPenolakan?: string;
   jumlahHari: number;
   evidences?: LeaveEvidence[];
   createdAt?: string;
@@ -170,6 +171,7 @@ export interface OvertimeRequest {
   durasi: number;
   estimasiBiaya: number;
   status: RequestStatus;
+  alasanPenolakan?: string;
   evidences?: OvertimeEvidence[];
   createdAt?: string;
   updatedAt?: string;

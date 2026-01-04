@@ -46,8 +46,8 @@ export class LeaveRequestService {
     return this.api.put<LeaveRequest>(`${this.endpoint}`, `${id}/approve`, { komentar });
   }
 
-  reject(id: string, komentar?: string): Observable<LeaveRequest> {
-    return this.api.put<LeaveRequest>(`${this.endpoint}`, `${id}/reject`, { komentar });
+  reject(id: string, reason?: string): Observable<LeaveRequest> {
+    return this.api.put<LeaveRequest>(`${this.endpoint}`, `${id}/reject`, { reason });
   }
 }
 

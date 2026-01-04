@@ -50,8 +50,12 @@ export class OvertimeRequestService {
     return this.api.put<OvertimeRequest>(`${this.endpoint}`, `${id}/approve`, { komentar });
   }
 
-  reject(id: string, komentar?: string): Observable<OvertimeRequest> {
-    return this.api.put<OvertimeRequest>(`${this.endpoint}`, `${id}/reject`, { komentar });
+  reject(id: string, reason?: string): Observable<OvertimeRequest> {
+    return this.api.put<OvertimeRequest>(`${this.endpoint}`, `${id}/reject`, { reason });
+  }
+
+  reimburse(id: string): Observable<OvertimeRequest> {
+    return this.api.put<OvertimeRequest>(`${this.endpoint}`, `${id}/reimburse`, {});
   }
 }
 

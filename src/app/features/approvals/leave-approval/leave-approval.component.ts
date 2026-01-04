@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -11,6 +11,10 @@ import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { Dialog } from 'primeng/dialog';
 import { Textarea } from 'primeng/textarea';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { LeaveRequestService } from '../../../core/services/leave-request.service';
+import { LeaveRequest } from '../../../core/models';
 
 @Component({
   selector: 'app-leave-approval',
@@ -27,9 +31,12 @@ import { Textarea } from 'primeng/textarea';
     Select,
     DatePicker,
     Dialog,
-    Textarea
+    Textarea,
+    ToastModule
   ],
+  providers: [MessageService],
   template: `
+    <p-toast />
     <div class="page-header">
       <div>
         <h1 class="page-title">Persetujuan Cuti</h1>
@@ -111,6 +118,7 @@ import { Textarea } from 'primeng/textarea';
         [showCurrentPageReport]="true"
         currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
         styleClass="p-datatable-sm"
+        [loading]="loading"
       >
         <ng-template pTemplate="header">
           <tr>
@@ -127,34 +135,34 @@ import { Textarea } from 'primeng/textarea';
           <tr>
             <td>
               <div class="employee-info">
-                <span class="employee-name">{{ request.employeeName }}</span>
-                <span class="employee-dept">{{ request.department }}</span>
+                <span class="employee-name">{{ request.karyawan?.nama || '-' }}</span>
+                <span class="employee-dept">{{ request.karyawan?.departemen?.namaDepartement || '-' }}</span>
               </div>
             </td>
             <td>
-              <p-tag [value]="request.leaveType" severity="info" />
+              <p-tag [value]="request.jenisCuti?.namaJenis || '-'" severity="info" />
             </td>
             <td>
               <div class="date-range">
-                <span>{{ request.startDate }}</span>
+                <span>{{ request.tglMulai }}</span>
                 <i class="pi pi-arrow-right"></i>
-                <span>{{ request.endDate }}</span>
+                <span>{{ request.tglSelesai }}</span>
               </div>
             </td>
-            <td class="text-center">{{ request.totalDays }}</td>
-            <td class="reason-cell">{{ request.reason }}</td>
+            <td class="text-center">{{ request.jumlahHari }}</td>
+            <td class="reason-cell">{{ request.alasan || '-' }}</td>
             <td>
-              <p-tag [value]="request.status" [severity]="getStatusSeverity(request.status)" />
+              <p-tag [value]="getStatusLabel(request.status?.namaStatus)" [severity]="getStatusSeverity(request.status?.namaStatus)" />
             </td>
             <td>
-              @if (request.status === 'Menunggu') {
+              @if (request.status?.namaStatus === 'MENUNGGU_PERSETUJUAN') {
                 <div class="action-buttons">
                   <button pButton icon="pi pi-check" severity="success" [rounded]="true" [text]="true" pTooltip="Setujui" (click)="approve(request)"></button>
                   <button pButton icon="pi pi-times" severity="danger" [rounded]="true" [text]="true" pTooltip="Tolak" (click)="openRejectDialog(request)"></button>
-                  <button pButton icon="pi pi-eye" severity="info" [rounded]="true" [text]="true" pTooltip="Detail"></button>
+                  <a [routerLink]="['/approvals/leave', request.id]" pButton icon="pi pi-eye" severity="info" [rounded]="true" [text]="true" pTooltip="Detail"></a>
                 </div>
               } @else {
-                <button pButton icon="pi pi-eye" severity="info" [rounded]="true" [text]="true" pTooltip="Lihat Detail"></button>
+                <a [routerLink]="['/approvals/leave', request.id]" pButton icon="pi pi-eye" severity="info" [rounded]="true" [text]="true" pTooltip="Lihat Detail"></a>
               }
             </td>
           </tr>
@@ -298,17 +306,22 @@ import { Textarea } from 'primeng/textarea';
     .w-full { width: 100%; }
   `]
 })
-export class LeaveApprovalComponent {
+export class LeaveApprovalComponent implements OnInit {
+  private leaveService = inject(LeaveRequestService);
+  private messageService = inject(MessageService);
+  
+  loading = false;
+  
   filters = {
     search: '',
-    leaveType: null,
-    status: null,
+    leaveType: null as string | null,
+    status: null as string | null,
     dateRange: null
   };
   
   rejectDialogVisible = false;
   rejectReason = '';
-  selectedRequest: any = null;
+  selectedRequest: LeaveRequest | null = null;
   
   leaveTypes = [
     { name: 'Cuti Tahunan', value: 'Cuti Tahunan' },
@@ -318,63 +331,104 @@ export class LeaveApprovalComponent {
   ];
   
   statuses = [
-    { name: 'Menunggu', value: 'Menunggu' },
-    { name: 'Disetujui', value: 'Disetujui' },
-    { name: 'Ditolak', value: 'Ditolak' },
+    { name: 'Menunggu', value: 'MENUNGGU_PERSETUJUAN' },
+    { name: 'Disetujui', value: 'DISETUJUI' },
+    { name: 'Ditolak', value: 'DITOLAK' },
   ];
   
-  pendingRequests = [
-    { id: 1, employeeName: 'Ahmad Fauzi', department: 'IT', leaveType: 'Cuti Tahunan', startDate: '2024-01-20', endDate: '2024-01-22', totalDays: 3, reason: 'Liburan keluarga', status: 'Menunggu' },
-    { id: 2, employeeName: 'Siti Rahayu', department: 'HR', leaveType: 'Cuti Sakit', startDate: '2024-01-18', endDate: '2024-01-19', totalDays: 2, reason: 'Pemulihan pasca operasi', status: 'Menunggu' },
-    { id: 3, employeeName: 'Budi Santoso', department: 'Finance', leaveType: 'Cuti Tahunan', startDate: '2024-01-25', endDate: '2024-01-26', totalDays: 2, reason: 'Acara keluarga', status: 'Disetujui' },
-    { id: 4, employeeName: 'Dewi Lestari', department: 'Marketing', leaveType: 'Cuti Khusus', startDate: '2024-01-15', endDate: '2024-01-15', totalDays: 1, reason: 'Pernikahan saudara', status: 'Ditolak' },
-  ];
+  allRequests: LeaveRequest[] = [];
+  filteredData: LeaveRequest[] = [];
   
-  filteredData = [...this.pendingRequests];
-  
-  getPendingCount(): number {
-    return this.pendingRequests.filter(r => r.status === 'Menunggu').length;
+  ngOnInit(): void {
+    this.loadData();
   }
   
-  getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' | undefined {
+  loadData(): void {
+    this.loading = true;
+    this.leaveService.getAll().subscribe({
+      next: (data) => {
+        this.allRequests = data;
+        this.applyFilters();
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading leave requests:', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Gagal memuat data pengajuan cuti' });
+        this.loading = false;
+      }
+    });
+  }
+  
+  getPendingCount(): number {
+    return this.allRequests.filter(r => r.status?.namaStatus === 'MENUNGGU_PERSETUJUAN').length;
+  }
+  
+  getStatusSeverity(status?: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' | undefined {
     switch (status) {
-      case 'Disetujui': return 'success';
-      case 'Menunggu': return 'warn';
-      case 'Ditolak': return 'danger';
+      case 'DISETUJUI': return 'success';
+      case 'MENUNGGU_PERSETUJUAN': return 'warn';
+      case 'DITOLAK': return 'danger';
       default: return 'info';
+    }
+  }
+
+  getStatusLabel(status?: string): string {
+    switch (status) {
+      case 'MENUNGGU_PERSETUJUAN': return 'Menunggu';
+      case 'DISETUJUI': return 'Disetujui';
+      case 'DITOLAK': return 'Ditolak';
+      default: return status || '-';
     }
   }
   
   applyFilters(): void {
-    this.filteredData = this.pendingRequests.filter(r => {
+    this.filteredData = this.allRequests.filter(r => {
       const matchSearch = !this.filters.search || 
-        r.employeeName.toLowerCase().includes(this.filters.search.toLowerCase());
-      const matchType = !this.filters.leaveType || r.leaveType === this.filters.leaveType;
-      const matchStatus = !this.filters.status || r.status === this.filters.status;
+        r.karyawan?.nama?.toLowerCase().includes(this.filters.search.toLowerCase());
+      const matchType = !this.filters.leaveType || 
+        r.jenisCuti?.namaJenis === this.filters.leaveType;
+      const matchStatus = !this.filters.status || r.status?.namaStatus === this.filters.status;
       return matchSearch && matchType && matchStatus;
     });
   }
   
   resetFilters(): void {
     this.filters = { search: '', leaveType: null, status: null, dateRange: null };
-    this.filteredData = [...this.pendingRequests];
+    this.applyFilters();
   }
   
-  approve(request: any): void {
-    request.status = 'Disetujui';
-    this.filteredData = [...this.filteredData];
+  approve(request: LeaveRequest): void {
+    this.leaveService.approve(request.id).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Berhasil', detail: 'Pengajuan cuti disetujui' });
+        this.loadData();
+      },
+      error: (err) => {
+        console.error('Error approving:', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Gagal menyetujui pengajuan' });
+      }
+    });
   }
   
-  openRejectDialog(request: any): void {
+  openRejectDialog(request: LeaveRequest): void {
     this.selectedRequest = request;
     this.rejectReason = '';
     this.rejectDialogVisible = true;
   }
   
   reject(): void {
-    if (!this.rejectReason || !this.selectedRequest) return;
-    this.selectedRequest.status = 'Ditolak';
-    this.filteredData = [...this.filteredData];
-    this.rejectDialogVisible = false;
+    if (!this.rejectReason.trim() || !this.selectedRequest) return;
+    
+    this.leaveService.reject(this.selectedRequest.id, this.rejectReason).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Berhasil', detail: 'Pengajuan cuti ditolak' });
+        this.rejectDialogVisible = false;
+        this.loadData();
+      },
+      error: (err) => {
+        console.error('Error rejecting:', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Gagal menolak pengajuan' });
+      }
+    });
   }
 }

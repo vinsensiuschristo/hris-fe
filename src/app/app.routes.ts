@@ -69,6 +69,13 @@ export const routes: Routes = [
         ]
       },
       
+      // Attendance
+      {
+        path: 'attendance',
+        loadComponent: () => import('./features/attendance/attendance-list/attendance-list.component')
+          .then(m => m.AttendanceListComponent)
+      },
+      
       // Approvals (HR/Manager)
       {
         path: 'approvals',

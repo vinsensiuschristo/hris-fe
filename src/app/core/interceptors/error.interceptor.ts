@@ -10,13 +10,24 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const notificationService = inject(NotificationService);
   const authService = inject(AuthService);
   
+  // Skip error handling for login requests - let the component handle it
+  const isAuthRequest = req.url.includes('/auth/login') || req.url.includes('/auth/register');
+  
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       let errorMessage = 'Terjadi kesalahan yang tidak diketahui';
       
+      // For auth requests, skip interceptor notifications - component will handle
+      if (isAuthRequest) {
+        return throwError(() => error);
+      }
+      
       if (error.error instanceof ErrorEvent) {
         // Client-side error
         errorMessage = error.error.message;
+        notificationService.networkError();
+      } else if (error.error instanceof ProgressEvent) {
+        // Network error (CORS, server unreachable)
         notificationService.networkError();
       } else {
         // Server-side error
@@ -34,13 +45,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             
           case 401:
             // Unauthorized
-            if (req.url.includes('/auth/login')) {
-              errorMessage = 'Username atau password salah';
-              notificationService.error('Login Gagal', errorMessage);
-            } else {
-              notificationService.sessionExpired();
-              authService.logout();
-            }
+            notificationService.sessionExpired();
+            authService.logout();
             break;
             
           case 403:

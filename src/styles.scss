@@ -4525,3 +4525,172 @@ p-button + p-button {
     border: 1px solid #E2E8F0 !important;
   }
 }
+
+/* ===================== PrimeNG Dialog Styling ===================== */
+.p-dialog {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  border: none !important;
+  
+  .p-dialog-header {
+    background: linear-gradient(135deg, var(--hris-primary), var(--hris-primary-dark)) !important;
+    color: white !important;
+    padding: 1.25rem 1.5rem !important;
+    border-bottom: none !important;
+    
+    .p-dialog-title {
+      font-weight: 600 !important;
+      font-size: 1.125rem !important;
+      color: white !important;
+    }
+    
+    .p-dialog-header-close {
+      color: white !important;
+      width: 2rem !important;
+      height: 2rem !important;
+      border-radius: 8px !important;
+      transition: all 0.2s ease !important;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+      }
+      
+      &:focus {
+        box-shadow: none !important;
+      }
+    }
+  }
+  
+  .p-dialog-content {
+    background: white !important;
+    padding: 1.5rem !important;
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    
+    .form-group {
+      margin-bottom: 1.25rem;
+      
+      label {
+        display: block;
+        font-weight: 500;
+        color: #334155;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+        
+        .required {
+          color: #EF4444;
+          margin-left: 0.125rem;
+        }
+      }
+      
+      input, textarea, .p-select {
+        width: 100%;
+      }
+    }
+  }
+  
+  .p-dialog-footer {
+    background: #F8FAFC !important;
+    border: none !important;
+    border-top: 1px solid #E2E8F0 !important;
+    padding: 1rem 1.5rem !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 0.75rem !important;
+  }
+}
+
+/* Dialog mask/overlay */
+.p-dialog-mask {
+  background: rgba(15, 23, 42, 0.6) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* ===================== PrimeNG ConfirmDialog Styling ===================== */
+.p-confirmdialog {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  border: none !important;
+  
+  .p-dialog-header {
+    background: linear-gradient(135deg, var(--hris-primary), var(--hris-primary-dark)) !important;
+    color: white !important;
+    padding: 1.25rem 1.5rem !important;
+    border: none !important;
+    margin: 0 !important;
+    
+    .p-dialog-title {
+      font-weight: 600 !important;
+      font-size: 1.125rem !important;
+      color: white !important;
+    }
+    
+    .p-dialog-header-close {
+      color: white !important;
+      width: 2rem !important;
+      height: 2rem !important;
+      border-radius: 8px !important;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+      }
+      
+      &:focus {
+        box-shadow: none !important;
+      }
+    }
+  }
+  
+  .p-confirmdialog-content,
+  .p-dialog-content {
+    background: white !important;
+    padding: 1.5rem !important;
+    border: none !important;
+    margin: 0 !important;
+    
+    .p-confirmdialog-message {
+      margin-left: 0.5rem !important;
+    }
+  }
+  
+  .p-confirmdialog-footer,
+  .p-dialog-footer {
+    background: #F8FAFC !important;
+    border: none !important;
+    border-top: 1px solid #E2E8F0 !important;
+    padding: 1rem 1.5rem !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 0.75rem !important;
+    margin: 0 !important;
+  }
+}
+
+/* Fix dialog section margins to remove gaps */
+.p-dialog,
+.p-confirmdialog {
+  .p-dialog-header,
+  .p-dialog-content,
+  .p-dialog-footer,
+  .p-confirmdialog-content,
+  .p-confirmdialog-footer {
+    margin: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+  
+  .p-dialog-header {
+    border-top: none !important;
+    border-bottom: none !important;
+  }
+  
+  .p-dialog-content,
+  .p-confirmdialog-content {
+    border-top: none !important;
+    border-bottom: none !important;
+  }
+}

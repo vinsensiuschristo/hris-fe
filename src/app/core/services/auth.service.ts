@@ -47,7 +47,7 @@ export class AuthService {
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
   // Set to FALSE to use real backend API
-  private useMockAuth = true;
+  private useMockAuth = false;
 
   constructor() {
     this.loadStoredUser();
@@ -90,12 +90,8 @@ export class AuthService {
         this.storeAuthData(authData, credentials.rememberMe);
         // Fetch user details after login
         this.fetchUserDetails();
-      }),
-      catchError(error => {
-        console.error('Login error:', error);
-        const errorMessage = error.error?.message || error.error || 'Login gagal. Periksa username dan password.';
-        return throwError(() => ({ status: error.status, error: { message: errorMessage } }));
       })
+      // Let error pass through to component - component will handle error display
     );
   }
 

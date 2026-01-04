@@ -63,7 +63,16 @@ export class LoginComponent {
       },
       error: (error) => {
         this.isLoading.set(false);
-        this.notificationService.error('Login Gagal', error?.error?.message || 'Username atau password salah');
+        
+        // Check if it's a network error (ProgressEvent) or server unreachable
+        if (error.error instanceof ProgressEvent || error.status === 0) {
+          this.notificationService.error('Kesalahan Jaringan', 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
+        } else if (error.status === 401) {
+          this.notificationService.error('Login Gagal', 'Username atau password salah');
+        } else {
+          const message = error?.error?.message || 'Terjadi kesalahan saat login';
+          this.notificationService.error('Login Gagal', message);
+        }
       }
     });
   }

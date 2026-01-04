@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -9,6 +9,9 @@ import { Dialog } from 'primeng/dialog';
 import { Tooltip } from 'primeng/tooltip';
 import { ConfirmDialog } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
+import { DepartmentService } from '../../../../core/services/master-data.service';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { Department } from '../../../../core/models';
 
 @Component({
   selector: 'app-department-list',
@@ -44,60 +47,54 @@ import { ConfirmationService } from 'primeng/api';
         <span class="data-count">Total: {{ filteredData.length }} departemen</span>
       </div>
       
-      <p-table 
-        [value]="filteredData" 
-        [paginator]="true" 
-        [rows]="10"
-        [rowsPerPageOptions]="[10, 20, 50]"
-        [showCurrentPageReport]="true"
-        currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
-        styleClass="p-datatable-sm"
-      >
-        <ng-template pTemplate="header">
-          <tr>
-            <th style="width: 60px">No</th>
-            <th>Nama Departemen</th>
-            <th style="width: 120px">Kode</th>
-            <th style="width: 100px">Jumlah Staff</th>
-            <th style="width: 100px">Status</th>
-            <th style="width: 120px">Aksi</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-dept let-i="rowIndex">
-          <tr>
-            <td>{{ i + 1 }}</td>
-            <td>
-              <div class="dept-info">
-                <span class="dept-name">{{ dept.name }}</span>
-                @if (dept.description) {
-                  <span class="dept-desc">{{ dept.description }}</span>
-                }
-              </div>
-            </td>
-            <td><code class="code-badge">{{ dept.code }}</code></td>
-            <td class="text-center">{{ dept.staffCount }}</td>
-            <td>
-              <p-tag [value]="dept.isActive ? 'Aktif' : 'Nonaktif'" [severity]="dept.isActive ? 'success' : 'secondary'" />
-            </td>
-            <td>
-              <div class="action-buttons">
-                <button pButton icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" pTooltip="Edit" (click)="editDepartment(dept)"></button>
-                <button pButton icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" pTooltip="Hapus" (click)="confirmDelete(dept)"></button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="6" class="text-center p-4">
-              <div class="empty-state">
-                <i class="pi pi-building empty-icon"></i>
-                <p>Tidak ada data departemen</p>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+      @if (loading) {
+        <div class="loading-state">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Memuat data...</span>
+        </div>
+      } @else {
+        <p-table 
+          [value]="filteredData" 
+          [paginator]="true" 
+          [rows]="10"
+          [rowsPerPageOptions]="[10, 20, 50]"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
+          styleClass="p-datatable-sm"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 60px">No</th>
+              <th>Nama Departemen</th>
+              <th style="width: 120px">Aksi</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-dept let-i="rowIndex">
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td>
+                <span class="dept-name">{{ dept.namaDepartment }}</span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button pButton icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" pTooltip="Edit" (click)="editDepartment(dept)"></button>
+                  <button pButton icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" pTooltip="Hapus" (click)="confirmDelete(dept)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="3" class="text-center p-4">
+                <div class="empty-state">
+                  <i class="pi pi-building empty-icon"></i>
+                  <p>Tidak ada data departemen</p>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
     </div>
     
     <!-- Add/Edit Dialog -->
@@ -111,23 +108,13 @@ import { ConfirmationService } from 'primeng/api';
       <div class="dialog-content">
         <div class="form-group">
           <label>Nama Departemen <span class="required">*</span></label>
-          <input type="text" pInputText [(ngModel)]="formData.name" placeholder="Contoh: Human Resources" class="w-full" />
-        </div>
-        
-        <div class="form-group">
-          <label>Kode <span class="required">*</span></label>
-          <input type="text" pInputText [(ngModel)]="formData.code" placeholder="Contoh: HR" class="w-full" style="text-transform: uppercase" />
-        </div>
-        
-        <div class="form-group">
-          <label>Deskripsi</label>
-          <input type="text" pInputText [(ngModel)]="formData.description" placeholder="Deskripsi singkat departemen" class="w-full" />
+          <input type="text" pInputText [(ngModel)]="formData.namaDepartment" placeholder="Contoh: Human Resources" class="w-full" />
         </div>
       </div>
       
       <ng-template pTemplate="footer">
         <button pButton label="Batal" [text]="true" (click)="dialogVisible = false"></button>
-        <button pButton [label]="isEditMode ? 'Simpan' : 'Tambah'" icon="pi pi-check" (click)="saveDepartment()"></button>
+        <button pButton [label]="isEditMode ? 'Simpan' : 'Tambah'" icon="pi pi-check" (click)="saveDepartment()" [loading]="saving"></button>
       </ng-template>
     </p-dialog>
     
@@ -164,29 +151,9 @@ import { ConfirmationService } from 'primeng/api';
       color: #64748B;
     }
     
-    .dept-info {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
-    
     .dept-name {
       font-weight: 500;
       color: #1E293B;
-    }
-    
-    .dept-desc {
-      font-size: 0.75rem;
-      color: #64748B;
-    }
-    
-    .code-badge {
-      background: #F1F5F9;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-family: monospace;
-      color: #3B82F6;
     }
     
     .text-center { text-align: center; }
@@ -198,6 +165,17 @@ import { ConfirmationService } from 'primeng/api';
     
     .dialog-content {
       padding: 0.5rem 0;
+    }
+    
+    .loading-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 3rem;
+      color: #64748B;
+      
+      i { font-size: 1.5rem; }
     }
     
     .empty-state {
@@ -214,86 +192,122 @@ import { ConfirmationService } from 'primeng/api';
     .w-full { width: 100%; }
   `]
 })
-export class DepartmentListComponent {
+export class DepartmentListComponent implements OnInit {
+  private departmentService = inject(DepartmentService);
+  private confirmationService = inject(ConfirmationService);
+  private notificationService = inject(NotificationService);
+
   searchText = '';
   dialogVisible = false;
   isEditMode = false;
+  loading = false;
+  saving = false;
   
-  departments = [
-    { id: 1, name: 'Human Resources', code: 'HR', description: 'Manajemen sumber daya manusia', staffCount: 12, isActive: true },
-    { id: 2, name: 'Information Technology', code: 'IT', description: 'Teknologi informasi dan sistem', staffCount: 25, isActive: true },
-    { id: 3, name: 'Finance', code: 'FIN', description: 'Keuangan dan akuntansi', staffCount: 8, isActive: true },
-    { id: 4, name: 'Marketing', code: 'MKT', description: 'Pemasaran dan promosi', staffCount: 15, isActive: true },
-    { id: 5, name: 'Operations', code: 'OPS', description: 'Operasional dan logistik', staffCount: 30, isActive: false },
-  ];
-  
-  filteredData = [...this.departments];
+  departments: Department[] = [];
+  filteredData: Department[] = [];
   
   formData = {
-    id: null as number | null,
-    name: '',
-    code: '',
-    description: ''
+    id: null as string | null,
+    namaDepartment: ''
   };
-  
-  constructor(private confirmationService: ConfirmationService) {}
+
+  ngOnInit(): void {
+    this.loadDepartments();
+  }
+
+  loadDepartments(): void {
+    this.loading = true;
+    this.departmentService.getAll().subscribe({
+      next: (data) => {
+        this.departments = data;
+        this.filteredData = [...data];
+        this.loading = false;
+      },
+      error: (err) => {
+        this.loading = false;
+        this.notificationService.error('Error', 'Gagal memuat data departemen');
+        console.error('Load departments error:', err);
+      }
+    });
+  }
   
   onSearch(): void {
     const term = this.searchText.toLowerCase();
     this.filteredData = this.departments.filter(d => 
-      d.name.toLowerCase().includes(term) || 
-      d.code.toLowerCase().includes(term)
+      d.namaDepartment.toLowerCase().includes(term)
     );
   }
   
   openDialog(): void {
     this.isEditMode = false;
-    this.formData = { id: null, name: '', code: '', description: '' };
+    this.formData = { id: null, namaDepartment: '' };
     this.dialogVisible = true;
   }
   
-  editDepartment(dept: any): void {
+  editDepartment(dept: Department): void {
     this.isEditMode = true;
-    this.formData = { ...dept };
+    this.formData = { id: dept.id, namaDepartment: dept.namaDepartment };
     this.dialogVisible = true;
   }
   
   saveDepartment(): void {
-    if (!this.formData.name || !this.formData.code) return;
-    
-    if (this.isEditMode) {
-      const index = this.departments.findIndex(d => d.id === this.formData.id);
-      if (index > -1) {
-        this.departments[index].name = this.formData.name;
-        this.departments[index].code = this.formData.code;
-        this.departments[index].description = this.formData.description;
-      }
-    } else {
-      const newId = Math.max(...this.departments.map(d => d.id)) + 1;
-      this.departments.push({
-        id: newId,
-        name: this.formData.name,
-        code: this.formData.code.toUpperCase(),
-        description: this.formData.description,
-        staffCount: 0,
-        isActive: true
-      });
+    if (!this.formData.namaDepartment) {
+      this.notificationService.warn('Peringatan', 'Nama departemen harus diisi');
+      return;
     }
     
-    this.filteredData = [...this.departments];
-    this.dialogVisible = false;
+    this.saving = true;
+    const request = { namaDepartment: this.formData.namaDepartment };
+    
+    if (this.isEditMode && this.formData.id) {
+      this.departmentService.update(this.formData.id, request).subscribe({
+        next: () => {
+          this.notificationService.success('Berhasil', 'Departemen berhasil diperbarui');
+          this.dialogVisible = false;
+          this.saving = false;
+          this.loadDepartments();
+        },
+        error: (err) => {
+          this.saving = false;
+          this.notificationService.error('Error', 'Gagal memperbarui departemen');
+          console.error('Update error:', err);
+        }
+      });
+    } else {
+      this.departmentService.create(request).subscribe({
+        next: () => {
+          this.notificationService.success('Berhasil', 'Departemen berhasil ditambahkan');
+          this.dialogVisible = false;
+          this.saving = false;
+          this.loadDepartments();
+        },
+        error: (err) => {
+          this.saving = false;
+          this.notificationService.error('Error', 'Gagal menambahkan departemen');
+          console.error('Create error:', err);
+        }
+      });
+    }
   }
   
-  confirmDelete(dept: any): void {
+  confirmDelete(dept: Department): void {
     this.confirmationService.confirm({
-      message: `Apakah Anda yakin ingin menghapus departemen "${dept.name}"?`,
+      message: `Apakah Anda yakin ingin menghapus departemen "${dept.namaDepartment}"?`,
       header: 'Konfirmasi Hapus',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Ya, Hapus',
       rejectLabel: 'Batal',
       accept: () => {
-        this.departments = this.departments.filter(d => d.id !== dept.id);
-        this.filteredData = [...this.departments];
+        this.departmentService.delete(dept.id).subscribe({
+          next: () => {
+            this.notificationService.success('Berhasil', 'Departemen berhasil dihapus');
+            this.loadDepartments();
+          },
+          error: (err) => {
+            this.notificationService.error('Error', 'Gagal menghapus departemen');
+            console.error('Delete error:', err);
+          }
+        });
       }
     });
   }

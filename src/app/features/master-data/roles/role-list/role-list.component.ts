@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -7,9 +7,11 @@ import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
 import { Dialog } from 'primeng/dialog';
 import { Tooltip } from 'primeng/tooltip';
-import { Textarea } from 'primeng/textarea';
 import { ConfirmDialog } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
+import { RoleService } from '../../../../core/services/master-data.service';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { Role } from '../../../../core/models';
 
 @Component({
   selector: 'app-role-list',
@@ -23,7 +25,6 @@ import { ConfirmationService } from 'primeng/api';
     Tag,
     Dialog,
     Tooltip,
-    Textarea,
     ConfirmDialog
   ],
   providers: [ConfirmationService],
@@ -45,62 +46,59 @@ import { ConfirmationService } from 'primeng/api';
         <span class="data-count">Total: {{ filteredData.length }} role</span>
       </div>
       
-      <p-table 
-        [value]="filteredData" 
-        [paginator]="true" 
-        [rows]="10"
-        [rowsPerPageOptions]="[10, 20, 50]"
-        [showCurrentPageReport]="true"
-        currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
-        styleClass="p-datatable-sm"
-      >
-        <ng-template pTemplate="header">
-          <tr>
-            <th style="width: 60px">No</th>
-            <th>Nama Role</th>
-            <th>Deskripsi</th>
-            <th style="width: 120px">Jumlah User</th>
-            <th style="width: 100px">Status</th>
-            <th style="width: 120px">Aksi</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-role let-i="rowIndex">
-          <tr>
-            <td>{{ i + 1 }}</td>
-            <td>
-              <div class="role-info">
-                <div class="role-icon" [style.background]="role.color">
-                  <i class="pi pi-shield"></i>
+      @if (loading) {
+        <div class="loading-state">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Memuat data...</span>
+        </div>
+      } @else {
+        <p-table 
+          [value]="filteredData" 
+          [paginator]="true" 
+          [rows]="10"
+          [rowsPerPageOptions]="[10, 20, 50]"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
+          styleClass="p-datatable-sm"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 60px">No</th>
+              <th>Nama Role</th>
+              <th style="width: 120px">Aksi</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-role let-i="rowIndex">
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td>
+                <div class="role-info">
+                  <div class="role-icon">
+                    <i class="pi pi-shield"></i>
+                  </div>
+                  <span class="role-name">{{ role.namaRole }}</span>
                 </div>
-                <span class="role-name">{{ role.name }}</span>
-              </div>
-            </td>
-            <td class="text-muted">{{ role.description }}</td>
-            <td class="text-center">
-              <span class="user-count">{{ role.userCount }} user</span>
-            </td>
-            <td>
-              <p-tag [value]="role.isActive ? 'Aktif' : 'Nonaktif'" [severity]="role.isActive ? 'success' : 'secondary'" />
-            </td>
-            <td>
-              <div class="action-buttons">
-                <button pButton icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" pTooltip="Edit" (click)="editRole(role)"></button>
-                <button pButton icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" pTooltip="Hapus" (click)="confirmDelete(role)" [disabled]="role.isSystem"></button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="6" class="text-center p-4">
-              <div class="empty-state">
-                <i class="pi pi-shield empty-icon"></i>
-                <p>Tidak ada data role</p>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button pButton icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" pTooltip="Edit" (click)="editRole(role)"></button>
+                  <button pButton icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" pTooltip="Hapus" (click)="confirmDelete(role)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="3" class="text-center p-4">
+                <div class="empty-state">
+                  <i class="pi pi-shield empty-icon"></i>
+                  <p>Tidak ada data role</p>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
     </div>
     
     <p-dialog 
@@ -113,18 +111,13 @@ import { ConfirmationService } from 'primeng/api';
       <div class="dialog-content">
         <div class="form-group">
           <label>Nama Role <span class="required">*</span></label>
-          <input type="text" pInputText [(ngModel)]="formData.name" placeholder="Contoh: Manager" class="w-full" />
-        </div>
-        
-        <div class="form-group">
-          <label>Deskripsi</label>
-          <textarea pTextarea [(ngModel)]="formData.description" placeholder="Deskripsi role dan hak akses" rows="3" class="w-full"></textarea>
+          <input type="text" pInputText [(ngModel)]="formData.namaRole" placeholder="Contoh: ADMIN" class="w-full" style="text-transform: uppercase" />
         </div>
       </div>
       
       <ng-template pTemplate="footer">
         <button pButton label="Batal" [text]="true" (click)="dialogVisible = false"></button>
-        <button pButton [label]="isEditMode ? 'Simpan' : 'Tambah'" icon="pi pi-check" (click)="saveRole()"></button>
+        <button pButton [label]="isEditMode ? 'Simpan' : 'Tambah'" icon="pi pi-check" (click)="saveRole()" [loading]="saving"></button>
       </ng-template>
     </p-dialog>
     
@@ -168,24 +161,27 @@ import { ConfirmationService } from 'primeng/api';
       display: flex;
       align-items: center;
       justify-content: center;
+      background: #3B82F6;
       
       i { color: white; font-size: 0.875rem; }
     }
     
     .role-name { font-weight: 500; color: #1E293B; }
     
-    .user-count {
-      background: #F1F5F9;
-      color: #475569;
-      padding: 0.25rem 0.5rem;
-      border-radius: 12px;
-      font-size: 0.75rem;
-    }
-    
     .text-center { text-align: center; }
-    .text-muted { color: #64748B; font-size: 0.875rem; }
     .action-buttons { display: flex; gap: 0.25rem; }
     .dialog-content { padding: 0.5rem 0; }
+    
+    .loading-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 3rem;
+      color: #64748B;
+      
+      i { font-size: 1.5rem; }
+    }
     
     .empty-state {
       padding: 2rem;
@@ -198,87 +194,122 @@ import { ConfirmationService } from 'primeng/api';
     .w-full { width: 100%; }
   `]
 })
-export class RoleListComponent {
+export class RoleListComponent implements OnInit {
+  private roleService = inject(RoleService);
+  private confirmationService = inject(ConfirmationService);
+  private notificationService = inject(NotificationService);
+
   searchText = '';
   dialogVisible = false;
   isEditMode = false;
+  loading = false;
+  saving = false;
   
-  roles = [
-    { id: 1, name: 'Super Admin', description: 'Akses penuh ke semua fitur sistem', userCount: 1, color: '#DC2626', isActive: true, isSystem: true },
-    { id: 2, name: 'Admin', description: 'Mengelola data karyawan dan pengaturan', userCount: 3, color: '#2563EB', isActive: true, isSystem: true },
-    { id: 3, name: 'HR Manager', description: 'Mengelola SDM dan persetujuan cuti', userCount: 2, color: '#7C3AED', isActive: true, isSystem: false },
-    { id: 4, name: 'Manager', description: 'Persetujuan cuti dan lembur tim', userCount: 8, color: '#059669', isActive: true, isSystem: false },
-    { id: 5, name: 'Employee', description: 'Akses dasar untuk karyawan', userCount: 150, color: '#64748B', isActive: true, isSystem: true },
-  ];
-  
-  filteredData = [...this.roles];
+  roles: Role[] = [];
+  filteredData: Role[] = [];
   
   formData = {
-    id: null as number | null,
-    name: '',
-    description: ''
+    id: null as string | null,
+    namaRole: ''
   };
-  
-  constructor(private confirmationService: ConfirmationService) {}
+
+  ngOnInit(): void {
+    this.loadRoles();
+  }
+
+  loadRoles(): void {
+    this.loading = true;
+    this.roleService.getAll().subscribe({
+      next: (data) => {
+        this.roles = data;
+        this.filteredData = [...data];
+        this.loading = false;
+      },
+      error: (err) => {
+        this.loading = false;
+        this.notificationService.error('Error', 'Gagal memuat data role');
+        console.error('Load roles error:', err);
+      }
+    });
+  }
   
   onSearch(): void {
     const term = this.searchText.toLowerCase();
     this.filteredData = this.roles.filter(r => 
-      r.name.toLowerCase().includes(term) ||
-      r.description.toLowerCase().includes(term)
+      r.namaRole.toLowerCase().includes(term)
     );
   }
   
   openDialog(): void {
     this.isEditMode = false;
-    this.formData = { id: null, name: '', description: '' };
+    this.formData = { id: null, namaRole: '' };
     this.dialogVisible = true;
   }
   
-  editRole(role: any): void {
+  editRole(role: Role): void {
     this.isEditMode = true;
-    this.formData = { ...role };
+    this.formData = { id: role.id, namaRole: role.namaRole };
     this.dialogVisible = true;
   }
   
   saveRole(): void {
-    if (!this.formData.name) return;
-    
-    if (this.isEditMode) {
-      const index = this.roles.findIndex(r => r.id === this.formData.id);
-      if (index > -1) {
-        this.roles[index].name = this.formData.name;
-        this.roles[index].description = this.formData.description;
-      }
-    } else {
-      const newId = Math.max(...this.roles.map(r => r.id)) + 1;
-      this.roles.push({
-        id: newId,
-        name: this.formData.name,
-        description: this.formData.description,
-        userCount: 0,
-        color: '#3B82F6',
-        isActive: true,
-        isSystem: false
-      });
+    if (!this.formData.namaRole) {
+      this.notificationService.warn('Peringatan', 'Nama role harus diisi');
+      return;
     }
     
-    this.filteredData = [...this.roles];
-    this.dialogVisible = false;
+    this.saving = true;
+    const request = { namaRole: this.formData.namaRole.toUpperCase() };
+    
+    if (this.isEditMode && this.formData.id) {
+      this.roleService.update(this.formData.id, request).subscribe({
+        next: () => {
+          this.notificationService.success('Berhasil', 'Role berhasil diperbarui');
+          this.dialogVisible = false;
+          this.saving = false;
+          this.loadRoles();
+        },
+        error: (err) => {
+          this.saving = false;
+          this.notificationService.error('Error', 'Gagal memperbarui role');
+          console.error('Update error:', err);
+        }
+      });
+    } else {
+      this.roleService.create(request).subscribe({
+        next: () => {
+          this.notificationService.success('Berhasil', 'Role berhasil ditambahkan');
+          this.dialogVisible = false;
+          this.saving = false;
+          this.loadRoles();
+        },
+        error: (err) => {
+          this.saving = false;
+          this.notificationService.error('Error', 'Gagal menambahkan role');
+          console.error('Create error:', err);
+        }
+      });
+    }
   }
   
-  confirmDelete(role: any): void {
-    if (role.isSystem) return;
-    
+  confirmDelete(role: Role): void {
     this.confirmationService.confirm({
-      message: `Apakah Anda yakin ingin menghapus role "${role.name}"?`,
+      message: `Apakah Anda yakin ingin menghapus role "${role.namaRole}"?`,
       header: 'Konfirmasi Hapus',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Ya, Hapus',
       rejectLabel: 'Batal',
       accept: () => {
-        this.roles = this.roles.filter(r => r.id !== role.id);
-        this.filteredData = [...this.roles];
+        this.roleService.delete(role.id).subscribe({
+          next: () => {
+            this.notificationService.success('Berhasil', 'Role berhasil dihapus');
+            this.loadRoles();
+          },
+          error: (err) => {
+            this.notificationService.error('Error', 'Gagal menghapus role');
+            console.error('Delete error:', err);
+          }
+        });
       }
     });
   }

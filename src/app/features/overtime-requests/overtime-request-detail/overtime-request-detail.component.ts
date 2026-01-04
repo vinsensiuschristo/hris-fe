@@ -1,30 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, ActivatedRoute } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Tag } from 'primeng/tag';
 import { Avatar } from 'primeng/avatar';
 import { Divider } from 'primeng/divider';
-
-interface OvertimeRequest {
-  id: number;
-  employeeName: string;
-  employeeCode: string;
-  department: string;
-  position: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  totalHours: number;
-  reason: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  createdAt: string;
-  approvedBy?: string;
-  approvedAt?: string;
-  rejectedBy?: string;
-  rejectedAt?: string;
-  rejectionReason?: string;
-}
+import { ProgressSpinner } from 'primeng/progressspinner';
+import { OvertimeRequestService } from '../../../core/services/overtime-request.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { OvertimeRequest } from '../../../core/models';
 
 interface TimelineEvent {
   status: string;
@@ -37,166 +22,165 @@ interface TimelineEvent {
 @Component({
   selector: 'app-overtime-request-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, ButtonDirective, Tag, Avatar, Divider],
+  imports: [CommonModule, RouterModule, ButtonDirective, Tag, Avatar, Divider, ProgressSpinner],
   template: `
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">Detail Pengajuan Lembur</h1>
-        <p class="page-subtitle">Nomor Pengajuan: #OT-{{ request.id.toString().padStart(5, '0') }}</p>
+    @if (loading()) {
+      <div style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
+        <p-progressSpinner strokeWidth="4" />
       </div>
-      <div class="header-actions">
-        <a routerLink="/overtime-requests" pButton label="Kembali" icon="pi pi-arrow-left" [outlined]="true"></a>
-        @if (request.status === 'PENDING') {
-          <button pButton label="Setujui" icon="pi pi-check" severity="success"></button>
-          <button pButton label="Tolak" icon="pi pi-times" severity="danger" [outlined]="true"></button>
-        }
-      </div>
-    </div>
-    
-    <div class="detail-grid">
-      <!-- Main Info Card -->
-      <div class="hris-card main-card">
-        <div class="card-header">
-          <h3>Informasi Pengajuan Lembur</h3>
-          <p-tag [value]="getStatusLabel(request.status)" [severity]="getStatusSeverity(request.status)" [style]="{'font-size': '0.875rem', 'padding': '0.5rem 1rem'}" />
+    } @else if (request()) {
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Detail Pengajuan Lembur</h1>
+          <p class="page-subtitle">ID: {{ request()!.id }}</p>
         </div>
-        
-        <div class="card-body">
-          <!-- Overtime Badge -->
-          <div class="type-badge overtime">
-            <i class="pi pi-stopwatch"></i>
-            <span>Lembur</span>
-          </div>
-          
-          <!-- Date & Time Info -->
-          <div class="datetime-section">
-            <!-- Date Card -->
-            <div class="date-card">
-              <div class="date-icon">
-                <i class="pi pi-calendar"></i>
-              </div>
-              <div class="date-info">
-                <span class="date-label">Tanggal Lembur</span>
-                <span class="date-value">{{ request.date }}</span>
-              </div>
-            </div>
-            
-            <!-- Time Range -->
-            <div class="time-range-card">
-              <div class="time-box">
-                <span class="time-label">Mulai</span>
-                <span class="time-value">{{ request.startTime }}</span>
-              </div>
-              
-              <div class="time-connector">
-                <i class="pi pi-arrow-right"></i>
-              </div>
-              
-              <div class="time-box">
-                <span class="time-label">Selesai</span>
-                <span class="time-value">{{ request.endTime }}</span>
-              </div>
-              
-              <div class="hours-badge">
-                <span class="hours-value">{{ request.totalHours }}</span>
-                <span class="hours-label">Jam</span>
-              </div>
-            </div>
-          </div>
-          
-          <p-divider />
-          
-          <!-- Reason Card - Modern Design -->
-          <div class="reason-card">
-            <div class="reason-header">
-              <div class="reason-icon">
-                <i class="pi pi-file-edit"></i>
-              </div>
-              <h4>Alasan Lembur</h4>
-            </div>
-            <div class="reason-body">
-              <i class="pi pi-quote-left quote-icon"></i>
-              <p>{{ request.reason }}</p>
-            </div>
-          </div>
-          
-          @if (request.status === 'REJECTED' && request.rejectionReason) {
-            <div class="rejection-alert">
-              <div class="alert-icon">
-                <i class="pi pi-exclamation-triangle"></i>
-              </div>
-              <div class="alert-content">
-                <span class="alert-title">Alasan Penolakan</span>
-                <p class="alert-text">{{ request.rejectionReason }}</p>
-              </div>
-            </div>
+        <div class="header-actions">
+          <a routerLink="/overtime-requests" pButton label="Kembali" icon="pi pi-arrow-left" [outlined]="true"></a>
+          @if (isAdminOrHR && isPending()) {
+            <button pButton label="Setujui" icon="pi pi-check" severity="success" (click)="approve()" [loading]="processing()"></button>
+            <button pButton label="Tolak" icon="pi pi-times" severity="danger" [outlined]="true" (click)="reject()" [loading]="processing()"></button>
           }
         </div>
       </div>
       
-      <!-- Right Sidebar -->
-      <div class="sidebar-cards">
-        <!-- Employee Info -->
-        <div class="hris-card employee-card">
+      <div class="detail-grid">
+        <!-- Main Info Card -->
+        <div class="hris-card main-card">
           <div class="card-header">
-            <h3>Pengaju</h3>
+            <h3>Informasi Pengajuan Lembur</h3>
+            <p-tag [value]="getStatusLabel(request()!.status?.namaStatus)" [severity]="getStatusSeverity(request()!.status?.namaStatus)" [style]="{'font-size': '0.875rem', 'padding': '0.5rem 1rem'}" />
           </div>
+          
           <div class="card-body">
-            <div class="employee-profile">
-              <div class="avatar-wrapper">
-                <p-avatar [label]="getInitials(request.employeeName)" size="xlarge" shape="circle" [style]="{'background': 'linear-gradient(135deg, #8B5CF6, #7C3AED)', 'color': 'white', 'font-size': '1.25rem', 'font-weight': '600'}" />
-                <span class="status-dot online"></span>
+            <!-- Overtime Badge -->
+            <div class="type-badge overtime">
+              <i class="pi pi-stopwatch"></i>
+              <span>Lembur</span>
+            </div>
+            
+            <!-- Date & Time Info -->
+            <div class="datetime-section">
+              <!-- Date Card -->
+              <div class="date-card">
+                <div class="date-icon">
+                  <i class="pi pi-calendar"></i>
+                </div>
+                <div class="date-info">
+                  <span class="date-label">Tanggal Lembur</span>
+                  <span class="date-value">{{ formatDate(request()!.tglLembur) }}</span>
+                </div>
               </div>
-              <div class="employee-info">
-                <span class="employee-name">{{ request.employeeName }}</span>
-                <span class="employee-code"><i class="pi pi-id-card"></i> {{ request.employeeCode }}</span>
-                <div class="employee-tags">
-                  <span class="dept-tag">{{ request.department }}</span>
-                  <span class="pos-tag">{{ request.position }}</span>
+              
+              <!-- Time Range -->
+              <div class="time-range-card">
+                <div class="time-box">
+                  <span class="time-label">Mulai</span>
+                  <span class="time-value">{{ request()!.jamMulai }}</span>
+                </div>
+                
+                <div class="time-connector">
+                  <i class="pi pi-arrow-right"></i>
+                </div>
+                
+                <div class="time-box">
+                  <span class="time-label">Selesai</span>
+                  <span class="time-value">{{ request()!.jamSelesai }}</span>
+                </div>
+                
+                <div class="hours-badge">
+                  <span class="hours-value">{{ request()!.durasi }}</span>
+                  <span class="hours-label">Jam</span>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-        
-        <!-- Timeline -->
-        <div class="hris-card">
-          <div class="card-header">
-            <h3>Riwayat Status</h3>
-          </div>
-          <div class="card-body timeline-body">
-            @for (event of timeline; track $index) {
-              <div class="timeline-item" [class.active]="$index === 0">
-                <div class="timeline-icon" [style.background]="event.color">
-                  <i [class]="'pi ' + event.icon"></i>
-                </div>
-                <div class="timeline-content">
-                  <span class="timeline-status">{{ event.status }}</span>
-                  <span class="timeline-desc">{{ event.description }}</span>
-                  <span class="timeline-date"><i class="pi pi-clock"></i> {{ event.date }}</span>
+            
+            <p-divider />
+            
+            <!-- Cost Info -->
+            <div class="cost-section">
+              <span class="cost-label">Estimasi Biaya</span>
+              <span class="cost-value">{{ formatCurrency(request()!.estimasiBiaya) }}</span>
+            </div>
+            
+            <!-- Evidence Section -->
+            @if (request()!.evidences && request()!.evidences!.length > 0) {
+              <p-divider />
+              <div class="evidence-section">
+                <h4><i class="pi pi-images"></i> Bukti Lembur</h4>
+                <div class="evidence-grid">
+                  @for (evidence of request()!.evidences; track evidence.id) {
+                    <div class="evidence-item">
+                      @if (isImage(evidence.fileType)) {
+                        <a [href]="evidence.filePath" target="_blank" class="evidence-link">
+                          <img [src]="evidence.filePath" [alt]="'Evidence'" class="evidence-image" />
+                          <span class="view-overlay"><i class="pi pi-eye"></i></span>
+                        </a>
+                      } @else {
+                        <a [href]="evidence.filePath" target="_blank" class="evidence-file">
+                          <i class="pi pi-file-pdf"></i>
+                          <span>Lihat File</span>
+                        </a>
+                      }
+                    </div>
+                  }
                 </div>
               </div>
             }
           </div>
         </div>
         
-        <!-- Approval Info -->
-        @if (request.status !== 'PENDING') {
-          <div class="hris-card approval-card" [class.approved]="request.status === 'APPROVED'" [class.rejected]="request.status === 'REJECTED'">
+        <!-- Right Sidebar -->
+        <div class="sidebar-cards">
+          <!-- Employee Info -->
+          <div class="hris-card employee-card">
+            <div class="card-header">
+              <h3>Pengaju</h3>
+            </div>
             <div class="card-body">
-              <div class="approval-icon">
-                <i class="pi" [ngClass]="request.status === 'APPROVED' ? 'pi-check-circle' : 'pi-times-circle'"></i>
-              </div>
-              <div class="approval-info">
-                <span class="approval-status">{{ request.status === 'APPROVED' ? 'Disetujui' : 'Ditolak' }} oleh</span>
-                <span class="approval-by">{{ request.status === 'APPROVED' ? request.approvedBy : request.rejectedBy }}</span>
-                <span class="approval-date"><i class="pi pi-calendar"></i> {{ request.status === 'APPROVED' ? request.approvedAt : request.rejectedAt }}</span>
+              <div class="employee-profile">
+                <div class="avatar-wrapper">
+                  <p-avatar [label]="getInitials(request()!.karyawan?.nama || '-')" size="xlarge" shape="circle" [style]="{'background': 'linear-gradient(135deg, #8B5CF6, #7C3AED)', 'color': 'white', 'font-size': '1.25rem', 'font-weight': '600'}" />
+                </div>
+                <div class="employee-info">
+                  <span class="employee-name">{{ request()!.karyawan?.nama || '-' }}</span>
+                  <span class="employee-code"><i class="pi pi-id-card"></i> {{ request()!.karyawan?.nik || '-' }}</span>
+                  <div class="employee-tags">
+                    <span class="dept-tag">{{ request()!.karyawan?.departemen?.namaDepartement || '-' }}</span>
+                    <span class="pos-tag">{{ request()!.karyawan?.jabatan?.namaJabatan || '-' }}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        }
+          
+          <!-- Timeline -->
+          <div class="hris-card">
+            <div class="card-header">
+              <h3>Riwayat Status</h3>
+            </div>
+            <div class="card-body timeline-body">
+              @for (event of timeline; track $index) {
+                <div class="timeline-item" [class.active]="$index === 0">
+                  <div class="timeline-icon" [style.background]="event.color">
+                    <i [class]="'pi ' + event.icon"></i>
+                  </div>
+                  <div class="timeline-content">
+                    <span class="timeline-status">{{ event.status }}</span>
+                    <span class="timeline-desc">{{ event.description }}</span>
+                    <span class="timeline-date"><i class="pi pi-clock"></i> {{ event.date }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    } @else {
+      <div style="text-align: center; padding: 3rem;">
+        <p>Data tidak ditemukan</p>
+        <a routerLink="/overtime-requests" pButton label="Kembali" icon="pi pi-arrow-left"></a>
+      </div>
+    }
   `,
   styles: [`
     .header-actions {
@@ -331,99 +315,109 @@ interface TimelineEvent {
       }
     }
     
-    .reason-card {
-      background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
-      border: 1px solid #E2E8F0;
-      border-radius: 16px;
-      overflow: hidden;
+    .cost-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+      border-radius: 12px;
       
-      .reason-header {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 1rem 1.25rem;
-        background: white;
-        border-bottom: 1px solid #E2E8F0;
-        
-        .reason-icon {
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
-          background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          
-          i { color: white; font-size: 1rem; }
-        }
-        
-        h4 {
-          margin: 0;
-          font-size: 1rem;
-          font-weight: 600;
-          color: #1E293B;
-        }
+      .cost-label {
+        font-size: 0.875rem;
+        color: #065F46;
       }
       
-      .reason-body {
-        padding: 1.25rem;
-        position: relative;
-        
-        .quote-icon {
-          position: absolute;
-          top: 0.75rem;
-          left: 1rem;
-          font-size: 1.5rem;
-          color: #C4B5FD;
-          opacity: 0.6;
-        }
-        
-        p {
-          margin: 0;
-          padding-left: 1.5rem;
-          color: #334155;
-          font-size: 0.9375rem;
-          line-height: 1.75;
-          font-style: normal;
-        }
+      .cost-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #059669;
       }
     }
     
-    .rejection-alert {
-      display: flex;
-      gap: 1rem;
-      background: linear-gradient(135deg, #FEF2F2, #FEE2E2);
-      border: 1px solid #FECACA;
-      border-radius: 12px;
-      padding: 1.25rem;
-      margin-top: 1.5rem;
-      
-      .alert-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        background: #FEE2E2;
+    .evidence-section {
+      h4 {
         display: flex;
         align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
+        gap: 0.5rem;
+        margin: 0 0 1rem 0;
+        font-size: 1rem;
+        color: #1E293B;
         
-        i { color: #DC2626; font-size: 1.25rem; }
+        i { color: #8B5CF6; }
+      }
+    }
+    
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1rem;
+    }
+    
+    .evidence-item {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #E2E8F0;
+    }
+    
+    .evidence-link {
+      display: block;
+      position: relative;
+      
+      &:hover .view-overlay {
+        opacity: 1;
+      }
+    }
+    
+    .evidence-image {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      display: block;
+    }
+    
+    .view-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      
+      i {
+        color: white;
+        font-size: 1.5rem;
+      }
+    }
+    
+    .evidence-file {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background: #F8FAFC;
+      text-decoration: none;
+      gap: 0.5rem;
+      
+      i {
+        font-size: 2rem;
+        color: #DC2626;
       }
       
-      .alert-content {
-        .alert-title {
-          font-weight: 600;
-          color: #DC2626;
-          display: block;
-          margin-bottom: 0.375rem;
-        }
-        
-        .alert-text {
-          color: #7F1D1D;
-          margin: 0;
-          line-height: 1.5;
-        }
+      span {
+        font-size: 0.75rem;
+        color: #64748B;
+      }
+      
+      &:hover {
+        background: #F1F5F9;
       }
     }
     
@@ -441,18 +435,6 @@ interface TimelineEvent {
     
     .avatar-wrapper {
       position: relative;
-      
-      .status-dot {
-        position: absolute;
-        bottom: 4px;
-        right: 4px;
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        border: 2px solid white;
-        
-        &.online { background: #22C55E; }
-      }
     }
     
     .employee-info {
@@ -501,47 +483,51 @@ interface TimelineEvent {
       }
     }
     
-    .approval-card {
-      .card-body {
+    .timeline-body {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .timeline-item {
+      display: flex;
+      gap: 1rem;
+      
+      .timeline-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
         display: flex;
         align-items: center;
-        gap: 1rem;
-        padding: 1.25rem;
+        justify-content: center;
+        flex-shrink: 0;
+        
+        i { color: white; font-size: 0.875rem; }
       }
       
-      .approval-icon i {
-        font-size: 2.5rem;
-      }
-      
-      &.approved .approval-icon i { color: #059669; }
-      &.rejected .approval-icon i { color: #DC2626; }
-      
-      .approval-info {
+      .timeline-content {
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
         
-        .approval-status {
-          font-size: 0.75rem;
-          font-weight: 500;
-          color: inherit;
-          opacity: 0.8;
-        }
-        
-        .approval-by {
-          font-size: 1.125rem;
+        .timeline-status {
           font-weight: 600;
           color: #1E293B;
         }
         
-        .approval-date {
+        .timeline-desc {
+          font-size: 0.8125rem;
+          color: #64748B;
+        }
+        
+        .timeline-date {
           display: flex;
           align-items: center;
           gap: 0.375rem;
-          font-size: 0.8125rem;
-          color: #64748B;
+          font-size: 0.75rem;
+          color: #94A3B8;
           
-          i { font-size: 0.75rem; }
+          i { font-size: 0.625rem; }
         }
       }
     }
@@ -559,69 +545,150 @@ interface TimelineEvent {
   `]
 })
 export class OvertimeRequestDetailComponent implements OnInit {
-  request: OvertimeRequest = {
-    id: 1,
-    employeeName: 'Ahmad Fauzi',
-    employeeCode: 'EMP001',
-    department: 'IT',
-    position: 'Senior Developer',
-    date: '15 Jan 2024',
-    startTime: '18:00',
-    endTime: '21:00',
-    totalHours: 3,
-    reason: 'Deadline proyek sistem inventory yang harus selesai besok. Perlu menyelesaikan modul laporan stok dan integrasi dengan sistem akuntansi agar dapat di-deploy sesuai jadwal.',
-    status: 'PENDING',
-    createdAt: '15 Jan 2024, 16:30'
-  };
-  
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private overtimeRequestService = inject(OvertimeRequestService);
+  private authService = inject(AuthService);
+  private notificationService = inject(NotificationService);
+
+  loading = signal<boolean>(true);
+  processing = signal<boolean>(false);
+  request = signal<OvertimeRequest | null>(null);
   timeline: TimelineEvent[] = [];
   
-  constructor(private route: ActivatedRoute) {}
-  
+  get isAdminOrHR(): boolean {
+    return this.authService.hasAnyRole(['ADMIN', 'HR']);
+  }
+
+  isPending(): boolean {
+    return this.request()?.status?.namaStatus === 'MENUNGGU_PERSETUJUAN';
+  }
+
   ngOnInit(): void {
-    this.buildTimeline();
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.loadRequest(id);
+    } else {
+      this.loading.set(false);
+    }
+  }
+
+  private loadRequest(id: string): void {
+    this.overtimeRequestService.getById(id).subscribe({
+      next: (data) => {
+        this.request.set(data);
+        this.buildTimeline();
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading overtime request:', err);
+        this.loading.set(false);
+      }
+    });
   }
   
   buildTimeline(): void {
-    if (this.request.status === 'APPROVED') {
+    const req = this.request();
+    if (!req) return;
+
+    const statusName = req.status?.namaStatus || '';
+    const createdDate = this.formatDateTime(req.createdAt || '');
+    const karyawanName = req.karyawan?.nama || 'Karyawan';
+
+    if (statusName === 'DISETUJUI') {
       this.timeline = [
-        { status: 'Disetujui', date: this.request.approvedAt || '', icon: 'pi-check', color: '#22C55E', description: `Oleh ${this.request.approvedBy}` },
-        { status: 'Menunggu Persetujuan', date: this.request.createdAt, icon: 'pi-clock', color: '#F59E0B', description: 'Pengajuan dalam proses review' },
-        { status: 'Pengajuan Dibuat', date: this.request.createdAt, icon: 'pi-plus', color: '#8B5CF6', description: `Oleh ${this.request.employeeName}` }
+        { status: 'Disetujui', date: createdDate, icon: 'pi-check', color: '#22C55E', description: 'Pengajuan telah disetujui' },
+        { status: 'Pengajuan Dibuat', date: createdDate, icon: 'pi-plus', color: '#8B5CF6', description: `Oleh ${karyawanName}` }
       ];
-    } else if (this.request.status === 'REJECTED') {
+    } else if (statusName === 'DITOLAK') {
       this.timeline = [
-        { status: 'Ditolak', date: this.request.rejectedAt || '', icon: 'pi-times', color: '#EF4444', description: `Oleh ${this.request.rejectedBy}` },
-        { status: 'Menunggu Persetujuan', date: this.request.createdAt, icon: 'pi-clock', color: '#F59E0B', description: 'Pengajuan dalam proses review' },
-        { status: 'Pengajuan Dibuat', date: this.request.createdAt, icon: 'pi-plus', color: '#8B5CF6', description: `Oleh ${this.request.employeeName}` }
+        { status: 'Ditolak', date: createdDate, icon: 'pi-times', color: '#EF4444', description: 'Pengajuan telah ditolak' },
+        { status: 'Pengajuan Dibuat', date: createdDate, icon: 'pi-plus', color: '#8B5CF6', description: `Oleh ${karyawanName}` }
       ];
     } else {
       this.timeline = [
-        { status: 'Menunggu Persetujuan', date: this.request.createdAt, icon: 'pi-clock', color: '#F59E0B', description: 'Pengajuan dalam proses review HR' },
-        { status: 'Pengajuan Dibuat', date: this.request.createdAt, icon: 'pi-plus', color: '#8B5CF6', description: `Oleh ${this.request.employeeName}` }
+        { status: 'Menunggu Persetujuan', date: createdDate, icon: 'pi-clock', color: '#F59E0B', description: 'Pengajuan dalam proses review HR' },
+        { status: 'Pengajuan Dibuat', date: createdDate, icon: 'pi-plus', color: '#8B5CF6', description: `Oleh ${karyawanName}` }
       ];
     }
+  }
+
+  approve(): void {
+    const req = this.request();
+    if (!req) return;
+
+    this.processing.set(true);
+    this.overtimeRequestService.approve(req.id).subscribe({
+      next: () => {
+        this.notificationService.success('Pengajuan lembur berhasil disetujui');
+        this.router.navigate(['/overtime-requests']);
+      },
+      error: (err) => {
+        console.error('Error approving:', err);
+        this.notificationService.error('Gagal menyetujui pengajuan');
+        this.processing.set(false);
+      }
+    });
+  }
+
+  reject(): void {
+    const req = this.request();
+    if (!req) return;
+
+    this.processing.set(true);
+    this.overtimeRequestService.reject(req.id).subscribe({
+      next: () => {
+        this.notificationService.success('Pengajuan lembur berhasil ditolak');
+        this.router.navigate(['/overtime-requests']);
+      },
+      error: (err) => {
+        console.error('Error rejecting:', err);
+        this.notificationService.error('Gagal menolak pengajuan');
+        this.processing.set(false);
+      }
+    });
   }
   
   getInitials(name: string): string {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   }
+
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  formatDateTime(dateStr: string): string {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  formatCurrency(amount: number): string {
+    if (!amount) return 'Rp 0';
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+  }
   
-  getStatusLabel(status: string): string {
+  getStatusLabel(status: string | undefined): string {
     switch (status) {
-      case 'APPROVED': return 'Disetujui';
-      case 'PENDING': return 'Menunggu';
-      case 'REJECTED': return 'Ditolak';
-      default: return status;
+      case 'DISETUJUI': return 'Disetujui';
+      case 'MENUNGGU_PERSETUJUAN': return 'Menunggu';
+      case 'DITOLAK': return 'Ditolak';
+      default: return status || '-';
     }
   }
   
-  getStatusSeverity(status: string): 'success' | 'warn' | 'danger' | 'info' | 'secondary' | 'contrast' | undefined {
+  getStatusSeverity(status: string | undefined): 'success' | 'warn' | 'danger' | 'info' | 'secondary' | 'contrast' | undefined {
     switch (status) {
-      case 'APPROVED': return 'success';
-      case 'PENDING': return 'warn';
-      case 'REJECTED': return 'danger';
+      case 'DISETUJUI': return 'success';
+      case 'MENUNGGU_PERSETUJUAN': return 'warn';
+      case 'DITOLAK': return 'danger';
       default: return 'info';
     }
+  }
+
+  isImage(fileType: string): boolean {
+    return fileType?.startsWith('image/');
   }
 }

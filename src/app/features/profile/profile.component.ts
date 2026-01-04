@@ -68,11 +68,11 @@ import { EmployeeResponse } from '../../core/models';
               </div>
               <div class="detail-item">
                 <label>Departemen</label>
-                <span>{{ employee()?.departemen?.nama || employee()?.departemen || '-' }}</span>
+                <span>{{ employee()?.departemen?.namaDepartment || '-' }}</span>
               </div>
               <div class="detail-item">
                 <label>Jabatan</label>
-                <span>{{ employee()?.jabatan?.nama || employee()?.jabatan || '-' }}</span>
+                <span>{{ employee()?.jabatan?.namaJabatan || '-' }}</span>
               </div>
               <div class="detail-item highlight">
                 <label>Sisa Cuti</label>

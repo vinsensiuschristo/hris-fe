@@ -1,14 +1,18 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
+
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
 import { Card } from 'primeng/card';
 import { FileUpload } from 'primeng/fileupload';
 import { NotificationService } from '../../../core/services/notification.service';
+import { LeaveRequestService } from '../../../core/services/leave-request.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { LeaveTypeService } from '../../../core/services/master-data.service';
 
 @Component({
   selector: 'app-leave-request-form',
@@ -40,12 +44,13 @@ import { NotificationService } from '../../../core/services/notification.service
             <label>Tipe Cuti <span class="required">*</span></label>
             <p-select 
               formControlName="leaveTypeId"
-              [options]="leaveTypes"
-              optionLabel="name"
+              [options]="leaveTypes()"
+              optionLabel="namaJenis"
               optionValue="id"
               placeholder="Pilih tipe cuti"
               (onChange)="onLeaveTypeChange($event)"
               [style]="{'width': '100%'}"
+              [loading]="loadingTypes()"
             />
             @if (form.get('leaveTypeId')?.invalid && form.get('leaveTypeId')?.touched) {
               <small class="error-text">Tipe cuti wajib dipilih</small>
@@ -63,6 +68,7 @@ import { NotificationService } from '../../../core/services/notification.service
                 [minDate]="minDate"
                 (onSelect)="calculateDays()"
                 appendTo="body"
+                [baseZIndex]="10000"
                 [style]="{'width': '100%'}"
               />
               @if (form.get('startDate')?.invalid && form.get('startDate')?.touched) {
@@ -80,6 +86,7 @@ import { NotificationService } from '../../../core/services/notification.service
                 [minDate]="form.get('startDate')?.value || minDate"
                 (onSelect)="calculateDays()"
                 appendTo="body"
+                [baseZIndex]="10000"
                 [style]="{'width': '100%'}"
               />
               @if (form.get('endDate')?.invalid && form.get('endDate')?.touched) {
@@ -110,17 +117,33 @@ import { NotificationService } from '../../../core/services/notification.service
           </div>
           
           <div class="form-group">
-            <label>Lampiran (Opsional)</label>
-            <div class="upload-area">
-              <i class="pi pi-cloud-upload"></i>
-              <p>Seret file ke sini atau <span class="upload-link">pilih file</span></p>
-              <small>Format: PDF, JPG, PNG (Maks. 5MB)</small>
-            </div>
+            <label>Lampiran (Gambar atau PDF, maks 5MB)</label>
+            <p-fileupload 
+              mode="basic" 
+              name="attachment" 
+              accept="image/jpeg,image/png,image/jpg,image/webp,application/pdf"
+              [maxFileSize]="5000000"
+              chooseLabel="Pilih File"
+              [auto]="false"
+              (onSelect)="onFileSelect($event)"
+              styleClass="w-full"
+            />
+            @if (selectedFile()) {
+              <div class="selected-file">
+                <i [class]="selectedFile()?.type?.includes('pdf') ? 'pi pi-file-pdf' : 'pi pi-image'"></i>
+                <span>{{ selectedFile()?.name }}</span>
+                <span class="file-size">({{ formatFileSize(selectedFile()?.size || 0) }})</span>
+                <button type="button" class="remove-file" (click)="removeFile()">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            }
+            <small class="form-help">Upload surat dokter atau bukti pendukung (JPG, PNG, PDF, maks 5MB)</small>
           </div>
           
           <div class="form-actions">
             <a routerLink="/leave-requests" class="p-button p-button-outlined">Batal</a>
-            <button pButton type="submit" label="Ajukan Cuti" icon="pi pi-send" [loading]="isLoading"></button>
+            <button pButton type="submit" label="Ajukan Cuti" icon="pi pi-send" [loading]="isLoading" [disabled]="form.invalid"></button>
           </div>
         </form>
       </div>
@@ -200,6 +223,39 @@ import { NotificationService } from '../../../core/services/notification.service
       color: #DC2626;
       font-size: 0.75rem;
       margin-top: 0.25rem;
+      display: block;
+    }
+    
+    .form-help {
+      color: #94A3B8;
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      display: block;
+    }
+    
+    .selected-file {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: #F1F5F9;
+      border-radius: 6px;
+      margin-top: 0.5rem;
+      
+      i { color: #3B82F6; }
+      span { font-size: 0.875rem; color: #475569; }
+      .file-size { color: #94A3B8; font-size: 0.75rem; }
+      
+      .remove-file {
+        background: none;
+        border: none;
+        color: #DC2626;
+        cursor: pointer;
+        padding: 0.25rem;
+        margin-left: auto;
+        
+        &:hover { background: #FEE2E2; border-radius: 4px; }
+      }
     }
     
     .days-summary {
@@ -216,40 +272,6 @@ import { NotificationService } from '../../../core/services/notification.service
       i { font-size: 1rem; }
     }
     
-    .upload-area {
-      border: 2px dashed #E2E8F0;
-      border-radius: 8px;
-      padding: 1.5rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      
-      &:hover {
-        border-color: #3B82F6;
-        background: #F8FAFC;
-      }
-      
-      i {
-        font-size: 2rem;
-        color: #94A3B8;
-        margin-bottom: 0.5rem;
-      }
-      
-      p {
-        margin: 0 0 0.25rem;
-        color: #64748B;
-      }
-      
-      .upload-link {
-        color: #3B82F6;
-        font-weight: 500;
-      }
-      
-      small {
-        color: #94A3B8;
-      }
-    }
-    
     .form-actions {
       display: flex;
       justify-content: flex-end;
@@ -260,6 +282,11 @@ import { NotificationService } from '../../../core/services/notification.service
     }
     
     .w-full { width: 100%; }
+    
+    :host ::ng-deep {
+      .p-datepicker { width: 100%; }
+      .p-datepicker-panel { z-index: 10001 !important; }
+    }
     
     /* Sidebar */
     .sidebar-info {
@@ -380,21 +407,21 @@ import { NotificationService } from '../../../core/services/notification.service
     }
   `]
 })
-export class LeaveRequestFormComponent {
+export class LeaveRequestFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private notificationService = inject(NotificationService);
+  private leaveRequestService = inject(LeaveRequestService);
+  private leaveTypeService = inject(LeaveTypeService);
+  private authService = inject(AuthService);
 
   isLoading = false;
   totalDays = 0;
   minDate = new Date();
   
-  leaveTypes = [
-    { id: 1, name: 'Cuti Tahunan', maxDays: 12 },
-    { id: 2, name: 'Cuti Sakit', maxDays: 14 },
-    { id: 3, name: 'Cuti Melahirkan', maxDays: 90 },
-    { id: 4, name: 'Cuti Khusus', maxDays: 7 },
-  ];
+  leaveTypes = signal<any[]>([]);
+  loadingTypes = signal<boolean>(true);
+  selectedFile = signal<File | null>(null);
   
   leaveBalances = [
     { type: 'Cuti Tahunan', total: 12, used: 5, remaining: 7 },
@@ -408,6 +435,33 @@ export class LeaveRequestFormComponent {
     endDate: [null, Validators.required],
     reason: ['', [Validators.required, Validators.minLength(10)]]
   });
+
+  get currentKaryawanId(): string | null {
+    return this.authService.currentUser?.employee?.id || null;
+  }
+
+  ngOnInit(): void {
+    this.loadLeaveTypes();
+
+    if (!this.currentKaryawanId) {
+      this.notificationService.error('Error', 'Anda harus login sebagai karyawan untuk mengajukan cuti');
+      this.router.navigate(['/leave-requests']);
+    }
+  }
+
+  private loadLeaveTypes(): void {
+    this.loadingTypes.set(true);
+    this.leaveTypeService.getAll().subscribe({
+      next: (types) => {
+        this.leaveTypes.set(types);
+        this.loadingTypes.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading leave types:', err);
+        this.loadingTypes.set(false);
+      }
+    });
+  }
   
   onLeaveTypeChange(event: any): void {
     // Could update maxDays validation here
@@ -423,19 +477,96 @@ export class LeaveRequestFormComponent {
     }
   }
 
+  onFileSelect(event: any): void {
+    const file = event.files?.[0];
+    if (file) {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        this.notificationService.error('Error', 'File harus berupa gambar (JPG, PNG, WEBP) atau PDF');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        this.notificationService.error('Error', 'Ukuran file maksimal 5MB');
+        return;
+      }
+      this.selectedFile.set(file);
+    }
+  }
+
+  removeFile(): void {
+    this.selectedFile.set(null);
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
   onSubmit() {
     if (this.form.invalid) {
       Object.values(this.form.controls).forEach(c => { c.markAsTouched(); c.markAsDirty(); });
       return;
     }
+
+    if (!this.currentKaryawanId) {
+      this.notificationService.error('Error', 'Karyawan ID tidak ditemukan');
+      return;
+    }
     
     this.isLoading = true;
-    
-    // Simulate API call
-    setTimeout(() => {
-      this.isLoading = false;
-      this.notificationService.success('Berhasil', 'Pengajuan cuti berhasil dikirim');
-      this.router.navigate(['/leave-requests']);
-    }, 1000);
+
+    const formValue = this.form.value;
+    const startDate = formValue.startDate as Date;
+    const endDate = formValue.endDate as Date;
+
+    const request = {
+      karyawanId: this.currentKaryawanId,
+      jenisCutiId: formValue.leaveTypeId,
+      tglMulai: startDate.toISOString().split('T')[0],
+      tglSelesai: endDate.toISOString().split('T')[0],
+      alasan: formValue.reason
+    };
+
+    this.leaveRequestService.create(request).subscribe({
+      next: (result) => {
+        console.log('=== Leave request created ===', result);
+        console.log('Result ID:', result?.id);
+        // If file selected, upload it
+        const file = this.selectedFile();
+        console.log('Selected file:', file);
+        if (file && result.id) {
+          console.log('=== Starting evidence upload ===');
+          this.leaveRequestService.uploadEvidence(result.id, file).subscribe({
+            next: (uploadResult) => {
+              console.log('=== Evidence upload success ===', uploadResult);
+              this.isLoading = false;
+              this.notificationService.success('Berhasil', 'Pengajuan cuti dan bukti berhasil dikirim');
+              this.router.navigate(['/leave-requests']);
+            },
+            error: (uploadErr) => {
+              console.error('=== Evidence upload error ===', uploadErr);
+              this.isLoading = false;
+              // Request created but evidence failed - still navigate but warn
+              this.notificationService.warn('Perhatian', 'Pengajuan berhasil tapi upload bukti gagal. Anda dapat upload ulang nanti.');
+              this.router.navigate(['/leave-requests']);
+            }
+          });
+        } else {
+          console.log('=== No file to upload or no result ID ===');
+          this.isLoading = false;
+          this.notificationService.success('Berhasil', 'Pengajuan cuti berhasil dikirim');
+          this.router.navigate(['/leave-requests']);
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Error creating leave request:', err);
+        const errorMsg = err.error?.message || err.message || 'Gagal mengirim pengajuan cuti';
+        this.notificationService.error('Error', errorMsg);
+      }
+    });
   }
 }

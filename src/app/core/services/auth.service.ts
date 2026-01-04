@@ -74,22 +74,33 @@ export class AuthService {
       password: credentials.password
     }).pipe(
       map(response => {
-        // Transform backend response to frontend AuthData format
+        // Build user from response including karyawan/employee info
+        const user: User = {
+          id: response.user?.id || '',
+          username: response.username,
+          roles: response.user?.roles || [],
+          employee: response.user?.karyawan ? {
+            id: response.user.karyawan.id,
+            nama: response.user.karyawan.nama,
+            nik: response.user.karyawan.nik,
+            email: '',
+            departemen: { id: '', namaDepartment: '' },
+            jabatan: { id: '', namaJabatan: '' },
+            sisaCuti: 0
+          } : undefined
+        };
+
         const authData: AuthData = {
           accessToken: response.token,
           tokenType: 'Bearer',
-          user: {
-            id: '',
-            username: response.username,
-            roles: []
-          }
+          user: user
         };
         return authData;
       }),
       tap(authData => {
         this.storeAuthData(authData, credentials.rememberMe);
-        // Fetch user details after login
-        this.fetchUserDetails();
+        this.currentUserSubject.next(authData.user);
+        this.storageService.set(USER_KEY, authData.user);
       })
       // Let error pass through to component - component will handle error display
     );

@@ -38,10 +38,20 @@ export interface User {
   employee?: Employee;
 }
 
-// Backend returns simple auth response
+// Backend returns auth response with user
 export interface AuthResponse {
   token: string;
   username: string;
+  user?: {
+    id: string;
+    username: string;
+    roles: Role[];
+    karyawan?: {
+      id: string;
+      nama: string;
+      nik: string;
+    };
+  };
 }
 
 // Frontend extended auth (for storage)
@@ -119,8 +129,16 @@ export interface LeaveRequest {
   tglSelesai: string;
   alasan?: string;
   jumlahHari: number;
+  evidences?: LeaveEvidence[];
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface LeaveEvidence {
+  id: string;
+  filePath: string;
+  fileType: string;
+  uploadedAt: string;
 }
 
 export interface LeaveRequestEmployee {
@@ -129,6 +147,8 @@ export interface LeaveRequestEmployee {
   nik: string;
   email: string;
   sisaCuti: number;
+  departemen?: { id: string; namaDepartement: string };
+  jabatan?: { id: string; namaJabatan: string };
 }
 
 export interface LeaveRequestCreateRequest {
@@ -160,6 +180,8 @@ export interface OvertimeEmployee {
   nama: string;
   nik: string;
   email: string;
+  departemen?: { id: string; namaDepartement: string };
+  jabatan?: { id: string; namaJabatan: string };
 }
 
 export interface OvertimeRequestCreateRequest {

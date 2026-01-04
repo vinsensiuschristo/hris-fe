@@ -78,6 +78,19 @@ export interface Employee {
   updatedAt?: string;
 }
 
+// API Response type (matches BE response structure)
+export interface EmployeeResponse {
+  id: string;
+  nama: string;
+  nik: string;
+  email: string;
+  jabatan?: { id: string; namaJabatan: string };
+  departemen?: { id: string; namaDepartment: string };
+  sisaCuti: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface EmployeeCreateRequest {
   nama: string;
   nik: string;

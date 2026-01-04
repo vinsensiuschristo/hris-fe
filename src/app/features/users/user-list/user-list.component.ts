@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -9,205 +9,430 @@ import { Tag } from 'primeng/tag';
 import { Tooltip } from 'primeng/tooltip';
 import { Avatar } from 'primeng/avatar';
 import { Dialog } from 'primeng/dialog';
+import { Select } from 'primeng/select';
+import { ConfirmDialog } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
+import { UserService, UserResponse, UserCreateRequest } from '../../../core/services/master-data.service';
+import { RoleService } from '../../../core/services/master-data.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { EmployeeService } from '../../../core/services/employee.service';
+import { EmployeeResponse } from '../../../core/models';
 
-interface User {
-  id: number;
+interface UserDisplay {
+  id: string;
   username: string;
-  email: string;
-  role: string;
+  roles: { id: string; namaRole: string }[];
+  karyawan?: { id: string; nama: string; nik: string } | null;
   roleLabel: string;
-  isActive: boolean;
   initials: string;
   roleBg: string;
-  lastLogin: string;
-  employeeName: string | null;
 }
 
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, TableModule, ButtonDirective, InputText, Tag, Tooltip, Avatar, Dialog],
+  imports: [
+    CommonModule, FormsModule, RouterModule, TableModule, ButtonDirective, 
+    InputText, Tag, Tooltip, Avatar, Dialog, Select, ConfirmDialog
+  ],
+  providers: [ConfirmationService],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-header">
       <div>
         <h1 class="page-title">Manajemen User</h1>
         <p class="page-subtitle">Kelola akun pengguna sistem</p>
       </div>
-      <a routerLink="new" pButton label="Tambah User" icon="pi pi-plus"></a>
+      <button pButton label="Tambah User" icon="pi pi-plus" (click)="openDialog()"></button>
     </div>
     
     <div class="hris-card">
       <div class="table-header">
         <div class="search-box">
           <i class="pi pi-search"></i>
-          <input type="text" pInputText placeholder="Cari username atau email..." [(ngModel)]="searchText" (input)="onSearch()" />
+          <input type="text" pInputText placeholder="Cari username..." [(ngModel)]="searchText" (input)="onSearch()" />
         </div>
         <span class="data-count">Total: {{ filteredUsers.length }} user</span>
       </div>
       
-      <p-table 
-        [value]="filteredUsers" 
-        [paginator]="true" 
-        [rows]="10" 
-        [rowsPerPageOptions]="[10, 20, 50]" 
-        [showCurrentPageReport]="true" 
-        currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
-        styleClass="p-datatable-sm"
-      >
-        <ng-template pTemplate="header">
-          <tr>
-            <th>User</th>
-            <th>Email</th>
-            <th style="width: 150px">Role</th>
-            <th style="width: 120px">Terakhir Login</th>
-            <th style="width: 100px">Status</th>
-            <th style="width: 100px">Aksi</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-user>
-          <tr>
-            <td>
-              <div class="user-cell">
-                <p-avatar [label]="user.initials" shape="circle" [style]="{'background': user.roleBg, 'color': 'white'}" />
-                <div class="user-info">
-                  <span class="user-name">{{ user.username }}</span>
-                  <span class="user-employee" *ngIf="user.employeeName">{{ user.employeeName }}</span>
+      @if (loading) {
+        <div class="loading-state">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Memuat data...</span>
+        </div>
+      } @else {
+        <p-table 
+          [value]="filteredUsers" 
+          [paginator]="true" 
+          [rows]="10" 
+          [rowsPerPageOptions]="[10, 20, 50]" 
+          [showCurrentPageReport]="true" 
+          currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords}"
+          styleClass="p-datatable-sm"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 60px">No</th>
+              <th>Username</th>
+              <th>Karyawan</th>
+              <th style="width: 150px">Role</th>
+              <th style="width: 120px">Aksi</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-user let-i="rowIndex">
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td>
+                <div class="user-cell">
+                  <p-avatar [label]="user.initials" shape="circle" [style]="{'background': user.roleBg, 'color': 'white'}" />
+                  <div class="user-info">
+                    <span class="user-name">{{ user.username }}</span>
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td class="email-cell">{{ user.email }}</td>
-            <td>
-              <p-tag [value]="user.roleLabel" [severity]="getRoleSeverity(user.role)" />
-            </td>
-            <td class="date-cell">{{ user.lastLogin }}</td>
-            <td>
-              <p-tag [value]="user.isActive ? 'Aktif' : 'Nonaktif'" [severity]="user.isActive ? 'success' : 'secondary'" />
-            </td>
-            <td>
-              <div class="action-buttons">
-                <a [routerLink]="['/users', user.id, 'edit']" pButton icon="pi pi-pencil" [text]="true" [rounded]="true" severity="info" pTooltip="Edit"></a>
-                <button pButton icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" pTooltip="Hapus" 
-                  [disabled]="user.role === 'ADMIN'" 
-                  (click)="openDeleteDialog(user)"></button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="6" class="text-center p-4">
-              <div class="empty-state">
-                <i class="pi pi-users empty-icon"></i>
-                <p>Tidak ada data user</p>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+              </td>
+              <td>{{ user.karyawan?.nama || '-' }}</td>
+              <td>
+                <p-tag [value]="user.roleLabel" [severity]="getRoleSeverity(user.roleLabel)" />
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button pButton icon="pi pi-pencil" [text]="true" [rounded]="true" severity="info" pTooltip="Edit" (click)="editUser(user)"></button>
+                  <button pButton icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" pTooltip="Hapus" 
+                    [disabled]="user.roleLabel === 'ADMIN'" 
+                    (click)="confirmDelete(user)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="5" class="text-center p-4">
+                <div class="empty-state">
+                  <i class="pi pi-users empty-icon"></i>
+                  <p>Tidak ada data user</p>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
     </div>
     
-    <!-- Delete Confirmation Dialog -->
-    <p-dialog header="Hapus User" [(visible)]="showDeleteDialog" [modal]="true" [style]="{'width': '450px'}">
-      @if (selectedUser) {
-        <div class="dialog-content">
-          <div class="dialog-icon delete">
-            <i class="pi pi-trash"></i>
-          </div>
-          <p class="dialog-message">
-            Apakah Anda yakin ingin <strong>menghapus</strong> user ini?
-          </p>
-          <div class="user-preview">
-            <p-avatar [label]="selectedUser.initials" shape="circle" [style]="{'background': selectedUser.roleBg, 'color': 'white'}" />
-            <div>
-              <span class="name">{{ selectedUser.username }}</span>
-              <span class="info">{{ selectedUser.email }}</span>
-              @if (selectedUser.employeeName) {
-                <span class="info">Terhubung dengan: {{ selectedUser.employeeName }}</span>
-              }
-            </div>
-          </div>
-          <p class="warning-text">
-            <i class="pi pi-exclamation-triangle"></i>
-            Tindakan ini tidak dapat dibatalkan. User yang dihapus tidak dapat dipulihkan.
-          </p>
+    <!-- Add/Edit Dialog -->
+    <p-dialog 
+      [(visible)]="dialogVisible" 
+      [header]="isEditMode ? 'Edit User' : 'Tambah User'" 
+      [modal]="true" 
+      [style]="{'width': '450px'}"
+      [draggable]="false"
+    >
+      <div class="dialog-content">
+        <div class="form-group">
+          <label>Username <span class="required">*</span></label>
+          <input type="text" pInputText [(ngModel)]="formData.username" placeholder="Contoh: john_doe" class="w-full" />
         </div>
-      }
+        
+        <div class="form-group">
+          <label>Password <span class="required" *ngIf="!isEditMode">*</span></label>
+          <input type="password" pInputText [(ngModel)]="formData.password" [placeholder]="isEditMode ? 'Kosongkan jika tidak diubah' : 'Min. 6 karakter'" class="w-full" />
+        </div>
+        
+        <div class="form-group">
+          <label>Role <span class="required">*</span></label>
+          <p-select 
+            [options]="roles" 
+            [(ngModel)]="formData.roleId"
+            optionLabel="namaRole"
+            optionValue="id"
+            placeholder="Pilih role"
+            [style]="{'width': '100%'}"
+          />
+        </div>
+        
+        @if (isAdminOrHR) {
+          <div class="form-group">
+            <label>Karyawan Terkait</label>
+            <p-select 
+              [options]="employees" 
+              [(ngModel)]="formData.karyawanId"
+              optionLabel="nama"
+              optionValue="id"
+              placeholder="Pilih karyawan (opsional)"
+              [showClear]="true"
+              [style]="{'width': '100%'}"
+            >
+              <ng-template pTemplate="selectedItem" let-item>
+                {{ item?.nama }} ({{ item?.nik }})
+              </ng-template>
+              <ng-template pTemplate="item" let-item>
+                {{ item.nama }} ({{ item.nik }})
+              </ng-template>
+            </p-select>
+            <small class="hint">Hubungkan user dengan data karyawan</small>
+          </div>
+        }
+      </div>
+      
       <ng-template pTemplate="footer">
-        <button pButton label="Batal" [text]="true" (click)="showDeleteDialog = false"></button>
-        <button pButton label="Hapus User" icon="pi pi-trash" severity="danger" (click)="deleteUser()"></button>
+        <button pButton label="Batal" [text]="true" (click)="dialogVisible = false"></button>
+        <button pButton [label]="isEditMode ? 'Simpan' : 'Tambah'" icon="pi pi-check" (click)="saveUser()" [loading]="saving"></button>
       </ng-template>
     </p-dialog>
+    
+    <p-confirmDialog />
   `,
   styles: [`
+    .table-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem 1.25rem; border-bottom: 1px solid #E2E8F0;
+    }
+    .search-box {
+      position: relative;
+      i { position: absolute; left: 0.875rem; top: 50%; transform: translateY(-50%); color: #94A3B8; }
+      input { padding-left: 2.5rem; width: 280px; }
+    }
+    .data-count { font-size: 0.875rem; color: #64748B; }
     .user-cell { display: flex; align-items: center; gap: 0.75rem; }
     .user-info { display: flex; flex-direction: column; gap: 0.125rem; }
     .user-name { font-weight: 500; color: #1E293B; }
-    .user-employee { font-size: 0.75rem; color: #94A3B8; }
-    .email-cell { color: #64748B; font-size: 0.875rem; }
-    .date-cell { color: #94A3B8; font-size: 0.8125rem; }
     .action-buttons { display: flex; gap: 0.25rem; }
+    .dialog-content { padding: 0.5rem 0; }
+    .loading-state {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.5rem; padding: 3rem; color: #64748B;
+      i { font-size: 1.5rem; }
+    }
     .empty-state { padding: 2rem; text-align: center; color: #94A3B8; .empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; } }
-    
-    .dialog-content { text-align: center; padding: 1rem 0; }
-    .dialog-icon { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;
-      i { font-size: 1.75rem; }
-      &.delete { background: #FEE2E2; color: #DC2626; }
-    }
-    .dialog-message { margin: 0 0 1rem; color: #475569; }
-    .user-preview { display: flex; align-items: center; gap: 0.75rem; background: #F8FAFC; padding: 1rem; border-radius: 8px; text-align: left;
-      .name { display: block; font-weight: 600; color: #1E293B; }
-      .info { display: block; font-size: 0.8125rem; color: #64748B; }
-    }
-    .warning-text { display: flex; align-items: flex-start; gap: 0.5rem; background: #FEF2F2; color: #7F1D1D; padding: 0.75rem; border-radius: 6px; font-size: 0.8125rem; margin-top: 1rem; text-align: left;
-      i { color: #DC2626; flex-shrink: 0; margin-top: 0.125rem; }
-    }
+    .text-center { text-align: center; }
+    .w-full { width: 100%; }
   `]
 })
-export class UserListComponent {
+export class UserListComponent implements OnInit {
+  private userService = inject(UserService);
+  private roleService = inject(RoleService);
+  private confirmationService = inject(ConfirmationService);
+  private notificationService = inject(NotificationService);
+  private authService = inject(AuthService);
+  private employeeService = inject(EmployeeService);
+  private cdr = inject(ChangeDetectorRef);
+
   searchText = '';
-  showDeleteDialog = false;
-  selectedUser: User | null = null;
+  loading = false;
+  saving = false;
+  dialogVisible = false;
+  isEditMode = false;
+  isAdminOrHR = false;
   
-  users: User[] = [
-    { id: 1, username: 'admin', email: 'admin@company.com', role: 'ADMIN', roleLabel: 'Super Admin', isActive: true, initials: 'A', roleBg: '#DC2626', lastLogin: '3 Jan 2024', employeeName: null },
-    { id: 2, username: 'hr_manager', email: 'hr@company.com', role: 'HR', roleLabel: 'HR Manager', isActive: true, initials: 'HR', roleBg: '#7C3AED', lastLogin: '3 Jan 2024', employeeName: 'Siti Rahayu' },
-    { id: 3, username: 'ahmfauzi', email: 'ahmad@company.com', role: 'MANAGER', roleLabel: 'Manager', isActive: true, initials: 'AF', roleBg: '#059669', lastLogin: '2 Jan 2024', employeeName: 'Ahmad Fauzi' },
-    { id: 4, username: 'budisantoso', email: 'budi@company.com', role: 'EMPLOYEE', roleLabel: 'Karyawan', isActive: true, initials: 'BS', roleBg: '#64748B', lastLogin: '1 Jan 2024', employeeName: 'Budi Santoso' },
-    { id: 5, username: 'dewilestari', email: 'dewi@company.com', role: 'EMPLOYEE', roleLabel: 'Karyawan', isActive: false, initials: 'DL', roleBg: '#64748B', lastLogin: '25 Des 2023', employeeName: 'Dewi Lestari' },
-  ];
+  users: UserDisplay[] = [];
+  filteredUsers: UserDisplay[] = [];
+  roles: { id: string; namaRole: string }[] = [];
+  employees: EmployeeResponse[] = [];
   
-  filteredUsers = [...this.users];
+  formData = {
+    id: null as string | null,
+    username: '',
+    password: '',
+    roleId: '',
+    karyawanId: null as string | null
+  };
+
+  ngOnInit(): void {
+    this.loadUsers();
+    this.loadRoles();
+    this.loadEmployees();
+    this.checkUserRole();
+  }
+
+  private checkUserRole(): void {
+    this.authService.currentUser$.subscribe(user => {
+      if (user && user.roles) {
+        const roleNames = user.roles.map(r => r.namaRole.toUpperCase());
+        this.isAdminOrHR = roleNames.includes('ADMIN') || roleNames.includes('HR');
+      }
+    });
+  }
+
+  loadEmployees(): void {
+    this.employeeService.getAll().subscribe({
+      next: (data) => this.employees = data,
+      error: (err) => console.error('Load employees error:', err)
+    });
+  }
+
+  loadUsers(): void {
+    this.loading = true;
+    this.cdr.markForCheck();
+    this.userService.getAll().subscribe({
+      next: (data) => {
+        this.users = data.map(u => this.transformUser(u));
+        this.filteredUsers = [...this.users];
+        this.loading = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.loading = false;
+        this.cdr.markForCheck();
+        this.notificationService.error('Error', 'Gagal memuat data user');
+        console.error('Load users error:', err);
+      }
+    });
+  }
+
+  loadRoles(): void {
+    this.roleService.getAll().subscribe({
+      next: (data) => {
+        this.roles = data;
+      },
+      error: (err) => {
+        console.error('Load roles error:', err);
+      }
+    });
+  }
+
+  transformUser(user: UserResponse): UserDisplay {
+    const roleLabel = user.roles.length > 0 ? user.roles[0].namaRole : 'KARYAWAN';
+    return {
+      id: user.id,
+      username: user.username,
+      roles: user.roles,
+      karyawan: user.karyawan,
+      roleLabel,
+      initials: user.username.substring(0, 2).toUpperCase(),
+      roleBg: this.getRoleBg(roleLabel)
+    };
+  }
+
+  getRoleBg(role: string): string {
+    switch (role.toUpperCase()) {
+      case 'ADMIN': return '#DC2626';
+      case 'HR': return '#7C3AED';
+      case 'MANAGER': return '#059669';
+      default: return '#64748B';
+    }
+  }
   
   onSearch(): void {
     const term = this.searchText.toLowerCase();
-    this.filteredUsers = this.users.filter(u => 
-      u.username.toLowerCase().includes(term) ||
-      u.email.toLowerCase().includes(term) ||
-      (u.employeeName && u.employeeName.toLowerCase().includes(term))
+    this.filteredUsers = this.users.filter(u =>
+      u.username.toLowerCase().includes(term)
     );
   }
   
   getRoleSeverity(role: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' | undefined {
-    switch (role) {
+    switch (role.toUpperCase()) {
       case 'ADMIN': return 'danger';
       case 'HR': return 'info';
       case 'MANAGER': return 'warn';
       default: return 'secondary';
     }
   }
-  
-  openDeleteDialog(user: User): void {
-    if (user.role === 'ADMIN') return;
-    this.selectedUser = user;
-    this.showDeleteDialog = true;
+
+  openDialog(): void {
+    this.isEditMode = false;
+    this.formData = { id: null, username: '', password: '', roleId: '', karyawanId: null };
+    this.dialogVisible = true;
+  }
+
+  editUser(user: UserDisplay): void {
+    this.isEditMode = true;
+    this.formData = {
+      id: user.id,
+      username: user.username,
+      password: '',
+      roleId: user.roles.length > 0 ? user.roles[0].id : '',
+      karyawanId: user.karyawan?.id || null
+    };
+    this.dialogVisible = true;
+  }
+
+  saveUser(): void {
+    if (!this.formData.username || !this.formData.roleId) {
+      this.notificationService.warn('Peringatan', 'Username dan role harus diisi');
+      return;
+    }
+
+    if (!this.isEditMode && !this.formData.password) {
+      this.notificationService.warn('Peringatan', 'Password harus diisi');
+      return;
+    }
+
+    this.saving = true;
+
+    if (this.isEditMode && this.formData.id) {
+      const request: any = {
+        username: this.formData.username,
+        roleId: this.formData.roleId,
+        karyawanId: this.formData.karyawanId || null
+      };
+      if (this.formData.password) {
+        request.password = this.formData.password;
+      }
+
+      this.userService.update(this.formData.id, request).subscribe({
+        next: () => {
+          this.notificationService.success('Berhasil', 'User berhasil diperbarui');
+          this.dialogVisible = false;
+          this.saving = false;
+          this.cdr.markForCheck();
+          this.loadUsers();
+        },
+        error: (err) => {
+          this.saving = false;
+          this.cdr.markForCheck();
+          this.notificationService.error('Error', 'Gagal memperbarui user');
+          console.error('Update error:', err);
+        }
+      });
+    } else {
+      const request: UserCreateRequest = {
+        username: this.formData.username,
+        password: this.formData.password,
+        roleId: this.formData.roleId,
+        karyawanId: this.formData.karyawanId || undefined
+      };
+
+      this.userService.create(request).subscribe({
+        next: () => {
+          this.notificationService.success('Berhasil', 'User berhasil ditambahkan');
+          this.dialogVisible = false;
+          this.saving = false;
+          this.cdr.markForCheck();
+          this.loadUsers();
+        },
+        error: (err) => {
+          this.saving = false;
+          this.cdr.markForCheck();
+          this.notificationService.error('Error', 'Gagal menambahkan user');
+          console.error('Create error:', err);
+        }
+      });
+    }
   }
   
-  deleteUser(): void {
-    if (this.selectedUser) {
-      this.users = this.users.filter(u => u.id !== this.selectedUser!.id);
-      this.filteredUsers = this.filteredUsers.filter(u => u.id !== this.selectedUser!.id);
-    }
-    this.showDeleteDialog = false;
-    this.selectedUser = null;
+  confirmDelete(user: UserDisplay): void {
+    if (user.roleLabel.toUpperCase() === 'ADMIN') return;
+
+    this.confirmationService.confirm({
+      message: `Apakah Anda yakin ingin menghapus user "${user.username}"?`,
+      header: 'Konfirmasi Hapus',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Ya, Hapus',
+      rejectLabel: 'Batal',
+      accept: () => {
+        this.userService.delete(user.id).subscribe({
+          next: () => {
+            this.notificationService.success('Berhasil', 'User berhasil dihapus');
+            this.cdr.markForCheck();
+            this.loadUsers();
+          },
+          error: (err) => {
+            this.cdr.markForCheck();
+            this.notificationService.error('Error', 'Gagal menghapus user');
+            console.error('Delete error:', err);
+          }
+        });
+      }
+    });
   }
 }

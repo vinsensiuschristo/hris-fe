@@ -4694,3 +4694,32 @@ p-button + p-button {
     border-bottom: none !important;
   }
 }
+
+/* Fix dialog dropdown overflow - allow options to show outside dialog */
+.p-dialog {
+  overflow: visible !important;
+  
+  .p-dialog-content {
+    overflow: visible !important;
+  }
+}
+
+/* Ensure dropdown overlay appears above dialog */
+.p-select-overlay,
+.p-dropdown-panel,
+.p-listbox {
+  z-index: 10000 !important;
+}
+
+/* Fix dropdown/select placeholder vertical alignment */
+.p-select,
+.p-dropdown {
+  .p-select-label,
+  .p-dropdown-label {
+    display: flex !important;
+    align-items: center !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    min-height: 2.5rem !important;
+  }
+}

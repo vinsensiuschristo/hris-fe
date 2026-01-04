@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { Department, Position, LeaveType, Role } from '../models';
+import { Department, Position, LeaveType, Role, Employee, EmployeeCreateRequest, EmployeeUpdateRequest } from '../models';
 
 // ===================== Department Service =====================
 @Injectable({
@@ -112,6 +112,56 @@ export class RoleService {
 
   update(id: string, request: { namaRole: string }): Observable<Role> {
     return this.api.put<Role>(this.endpoint, id, request);
+  }
+
+  delete(id: string): Observable<void> {
+    return this.api.delete<void>(this.endpoint, id);
+  }
+}
+
+// ===================== User Service =====================
+export interface UserResponse {
+  id: string;
+  username: string;
+  roles: { id: string; namaRole: string }[];
+  karyawan?: { id: string; nama: string; nik: string } | null;
+}
+
+export interface UserCreateRequest {
+  username: string;
+  password: string;
+  roleId: string;
+  karyawanId?: string;
+}
+
+export interface UserUpdateRequest {
+  username?: string;
+  password?: string;
+  roleId?: string;
+  karyawanId?: string | null;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class UserService {
+  private api = inject(ApiService);
+  private endpoint = '/users';
+
+  getAll(): Observable<UserResponse[]> {
+    return this.api.get<UserResponse[]>(this.endpoint);
+  }
+
+  getById(id: string): Observable<UserResponse> {
+    return this.api.getOne<UserResponse>(this.endpoint, id);
+  }
+
+  create(request: UserCreateRequest): Observable<UserResponse> {
+    return this.api.post<UserResponse>(this.endpoint, request);
+  }
+
+  update(id: string, request: UserUpdateRequest): Observable<UserResponse> {
+    return this.api.put<UserResponse>(this.endpoint, id, request);
   }
 
   delete(id: string): Observable<void> {

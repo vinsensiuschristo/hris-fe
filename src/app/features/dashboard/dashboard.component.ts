@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { UIChart } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
+import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { DashboardService, MyDashboardStats } from '../../core/services/dashboard.service';
 
@@ -88,7 +89,7 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.initCharts();
+    this.initChartOptions();
     this.loadDashboardData();
   }
 
@@ -96,19 +97,80 @@ export class DashboardComponent implements OnInit {
     this.loading.set(true);
 
     if (this.isAdminOrHR) {
-      // Load admin/HR stats
-      this.dashboardService.getStats().subscribe({
-        next: (data) => {
+      // Load admin/HR stats and chart data in parallel
+      const now = new Date();
+      const monthLabels: string[] = [];
+      const monthRequests: { year: number; month: number }[] = [];
+      
+      // Get last 6 months
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        monthLabels.push(date.toLocaleString('id-ID', { month: 'short' }));
+        monthRequests.push({ year: date.getFullYear(), month: date.getMonth() + 1 });
+      }
+
+      // Fetch current stats and monthly data
+      forkJoin({
+        currentStats: this.dashboardService.getStats(),
+        month0: this.dashboardService.getMonthlyStats(monthRequests[0].year, monthRequests[0].month),
+        month1: this.dashboardService.getMonthlyStats(monthRequests[1].year, monthRequests[1].month),
+        month2: this.dashboardService.getMonthlyStats(monthRequests[2].year, monthRequests[2].month),
+        month3: this.dashboardService.getMonthlyStats(monthRequests[3].year, monthRequests[3].month),
+        month4: this.dashboardService.getMonthlyStats(monthRequests[4].year, monthRequests[4].month),
+        month5: this.dashboardService.getMonthlyStats(monthRequests[5].year, monthRequests[5].month)
+      }).subscribe({
+        next: (results) => {
+          // Set stats card data
           this.stats.set({
-            totalEmployees: data.totalKaryawan || 0,
-            pendingLeaveRequests: data.leaveSummary?.menunggu || 0,
-            pendingOvertimeRequests: data.overtimeSummary?.menunggu || 0,
-            approvedThisMonth: (data.leaveSummary?.disetujui || 0) + (data.overtimeSummary?.disetujui || 0)
+            totalEmployees: results.currentStats.totalKaryawan || 0,
+            pendingLeaveRequests: results.currentStats.leaveSummary?.menunggu || 0,
+            pendingOvertimeRequests: results.currentStats.overtimeSummary?.menunggu || 0,
+            approvedThisMonth: (results.currentStats.leaveSummary?.disetujui || 0) + (results.currentStats.overtimeSummary?.disetujui || 0)
           });
+
+          // Build chart data from monthly stats
+          const leaveApproved = [
+            results.month0.leaveSummary?.disetujui || 0,
+            results.month1.leaveSummary?.disetujui || 0,
+            results.month2.leaveSummary?.disetujui || 0,
+            results.month3.leaveSummary?.disetujui || 0,
+            results.month4.leaveSummary?.disetujui || 0,
+            results.month5.leaveSummary?.disetujui || 0
+          ];
+
+          const overtimeApproved = [
+            results.month0.overtimeSummary?.disetujui || 0,
+            results.month1.overtimeSummary?.disetujui || 0,
+            results.month2.overtimeSummary?.disetujui || 0,
+            results.month3.overtimeSummary?.disetujui || 0,
+            results.month4.overtimeSummary?.disetujui || 0,
+            results.month5.overtimeSummary?.disetujui || 0
+          ];
+
+          this.leaveChartData = {
+            labels: monthLabels,
+            datasets: [
+              {
+                label: 'Cuti Disetujui',
+                data: leaveApproved,
+                backgroundColor: 'rgba(34, 197, 94, 0.5)',
+                borderColor: 'rgb(34, 197, 94)',
+                borderWidth: 2
+              },
+              {
+                label: 'Lembur Disetujui',
+                data: overtimeApproved,
+                backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                borderColor: 'rgb(59, 130, 246)',
+                borderWidth: 2
+              }
+            ]
+          };
+
           this.loading.set(false);
         },
         error: (err) => {
-          console.error('Error loading admin stats:', err);
+          console.error('Error loading dashboard data:', err);
           this.loading.set(false);
         }
       });
@@ -129,28 +191,8 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  private initCharts(): void {
+  private initChartOptions(): void {
     const documentStyle = getComputedStyle(document.documentElement);
-    
-    this.leaveChartData = {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-      datasets: [
-        {
-          label: 'Cuti Disetujui',
-          data: [12, 19, 15, 25, 22, 30],
-          backgroundColor: 'rgba(34, 197, 94, 0.5)',
-          borderColor: 'rgb(34, 197, 94)',
-          borderWidth: 2
-        },
-        {
-          label: 'Lembur Disetujui',
-          data: [8, 15, 12, 18, 20, 25],
-          backgroundColor: 'rgba(59, 130, 246, 0.5)',
-          borderColor: 'rgb(59, 130, 246)',
-          borderWidth: 2
-        }
-      ]
-    };
 
     this.leaveChartOptions = {
       maintainAspectRatio: false,

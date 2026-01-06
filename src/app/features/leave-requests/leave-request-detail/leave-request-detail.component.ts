@@ -371,29 +371,40 @@ interface TimelineEvent {
     }
     
     .evidence-section {
+      margin-top: 1.5rem;
+      
       h4 {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        margin: 0 0 1rem 0;
-        font-size: 1rem;
+        margin: 0 0 1.25rem 0;
+        font-size: 1.125rem;
+        font-weight: 600;
         color: #1E293B;
         
-        i { color: #3B82F6; }
+        i { color: #3B82F6; font-size: 1.25rem; }
       }
     }
     
     .evidence-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 1rem;
     }
     
     .evidence-item {
       position: relative;
-      border-radius: 12px;
+      border-radius: 16px;
       overflow: hidden;
-      border: 1px solid #E2E8F0;
+      border: 2px solid #E2E8F0;
+      background: #F8FAFC;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        border-color: #3B82F6;
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(59, 130, 246, 0.2);
+      }
     }
     
     .evidence-link {
@@ -407,9 +418,14 @@ interface TimelineEvent {
     
     .evidence-image {
       width: 100%;
-      height: 120px;
+      height: 140px;
       object-fit: cover;
       display: block;
+      transition: transform 0.3s ease;
+      
+      .evidence-link:hover & {
+        transform: scale(1.05);
+      }
     }
     
     .view-overlay {
@@ -418,16 +434,25 @@ interface TimelineEvent {
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.9));
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 0.5rem;
       opacity: 0;
-      transition: opacity 0.2s;
+      transition: opacity 0.3s ease;
       
       i {
         color: white;
-        font-size: 1.5rem;
+        font-size: 2rem;
+      }
+      
+      &::after {
+        content: 'Lihat Gambar';
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 500;
       }
     }
     
@@ -436,23 +461,28 @@ interface TimelineEvent {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 1.5rem;
-      background: #F8FAFC;
+      padding: 2rem 1.5rem;
+      background: linear-gradient(135deg, #FEF2F2, #FECACA);
       text-decoration: none;
-      gap: 0.5rem;
+      gap: 0.75rem;
+      height: 140px;
+      transition: all 0.3s ease;
       
       i {
-        font-size: 2rem;
+        font-size: 2.5rem;
         color: #DC2626;
       }
       
       span {
-        font-size: 0.75rem;
-        color: #64748B;
+        font-size: 0.8125rem;
+        color: #991B1B;
+        font-weight: 500;
       }
       
       &:hover {
-        background: #F1F5F9;
+        background: linear-gradient(135deg, #FEE2E2, #FECACA);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(220, 38, 38, 0.2);
       }
     }
     
@@ -521,38 +551,48 @@ interface TimelineEvent {
     .timeline-body {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 1.25rem;
+      padding: 0.5rem 0;
     }
     
     .timeline-item {
       display: flex;
-      gap: 1rem;
+      gap: 0.875rem;
+      align-items: flex-start;
       
       .timeline-icon {
-        width: 36px;
-        height: 36px;
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        margin-top: 0.125rem;
         
-        i { color: white; font-size: 0.875rem; }
+        i { color: white; font-size: 0.75rem; }
       }
       
       .timeline-content {
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
+        flex: 1;
+        min-width: 0;
         
         .timeline-status {
           font-weight: 600;
+          font-size: 0.875rem;
           color: #1E293B;
+          line-height: 1.3;
         }
         
         .timeline-desc {
           font-size: 0.8125rem;
           color: #64748B;
+          line-height: 1.4;
+          word-wrap: break-word;
         }
         
         .timeline-date {

@@ -5,7 +5,6 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { Button } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
-import { CheckboxModule } from 'primeng/checkbox';
 import { Toast } from 'primeng/toast';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -19,7 +18,6 @@ import { NotificationService } from '../../../core/services/notification.service
     Button,
     InputTextModule,
     PasswordModule,
-    CheckboxModule,
     Toast
   ],
   templateUrl: './login.component.html',
@@ -39,8 +37,7 @@ export class LoginComponent {
   constructor() {
     this.loginForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      rememberMe: [false]
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 

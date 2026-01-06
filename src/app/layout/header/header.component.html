@@ -15,34 +15,33 @@
     >
       <i class="pi pi-bars"></i>
     </button>
-    
-    <!-- Search (Optional) -->
-    <div class="header-search desktop-only">
-      <i class="pi pi-search"></i>
-      <input type="text" placeholder="Cari..." class="search-input" />
-    </div>
   </div>
   
   <div class="header-right">
-    <!-- Notifications -->
-    @if (isAdminOrHR) {
-      <button class="header-icon-btn" (click)="notifOp.toggle($event)">
-        <i class="pi pi-bell"></i>
-        @if (unreadCount > 0) {
-          <span class="notification-badge">{{ unreadCount }}</span>
-        }
-      </button>
-      
-      <p-popover #notifOp>
-        <ng-template pTemplate="content">
-          <div class="notification-dropdown">
-            <div class="notif-header">
-              <span class="notif-title">Notifikasi</span>
-              @if (unreadCount > 0) {
-                <button class="mark-read-btn" (click)="markAllAsRead()">Tandai semua dibaca</button>
-              }
+    <!-- Notifications - for all users -->
+    <button class="header-icon-btn" (click)="notifOp.toggle($event)">
+      <i class="pi pi-bell"></i>
+      @if (unreadCount > 0) {
+        <span class="notification-badge">{{ unreadCount }}</span>
+      }
+    </button>
+    
+    <p-popover #notifOp>
+      <ng-template pTemplate="content">
+        <div class="notification-dropdown">
+          <div class="notif-header">
+            <span class="notif-title">Notifikasi</span>
+            @if (unreadCount > 0) {
+              <button class="mark-read-btn" (click)="markAllAsRead()">Tandai semua dibaca</button>
+            }
+          </div>
+          
+          @if (loadingNotifications) {
+            <div class="notif-loading">
+              <i class="pi pi-spin pi-spinner"></i>
+              <span>Memuat...</span>
             </div>
-            
+          } @else {
             <div class="notif-list">
               @for (notif of notifications; track notif.id) {
                 <div 
@@ -69,14 +68,18 @@
                 </div>
               }
             </div>
-            
-            <div class="notif-footer">
-              <a routerLink="/approvals/leave">Lihat semua pengajuan</a>
-            </div>
+          }
+          
+          <div class="notif-footer">
+            @if (isAdminOrHR) {
+              <a routerLink="/approvals/leave">Lihat semua persetujuan</a>
+            } @else {
+              <a routerLink="/leave-requests">Lihat pengajuan saya</a>
+            }
           </div>
-        </ng-template>
-      </p-popover>
-    }
+        </div>
+      </ng-template>
+    </p-popover>
     
     <!-- User Menu -->
     <div class="user-menu" (click)="op.toggle($event)">

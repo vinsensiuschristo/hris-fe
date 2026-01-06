@@ -365,6 +365,24 @@
       font-size: 0.8125rem;
     }
   }
+
+  .notif-loading {
+    padding: 2rem;
+    text-align: center;
+    color: var(--hris-gray-500);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    
+    i {
+      font-size: 1.5rem;
+    }
+    
+    span {
+      font-size: 0.8125rem;
+    }
+  }
   
   .notif-footer {
     padding: 0.75rem 1rem;

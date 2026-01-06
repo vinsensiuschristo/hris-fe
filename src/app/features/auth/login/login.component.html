@@ -1,138 +1,78 @@
 <div class="login-container">
-  <div class="login-wrapper">
-    <!-- Left side - Branding -->
-    <div class="login-branding">
-      <div class="branding-content">
-        <div class="logo">
-          <i class="pi pi-building" style="font-size: 3rem;"></i>
-        </div>
-        <h1>HRIS</h1>
-        <p class="tagline">Sistem Informasi Sumber Daya Manusia</p>
-        <div class="features">
-          <div class="feature-item">
-            <i class="pi pi-check-circle"></i>
-            <span>Pengajuan Cuti Online</span>
-          </div>
-          <div class="feature-item">
-            <i class="pi pi-check-circle"></i>
-            <span>Manajemen Lembur</span>
-          </div>
-          <div class="feature-item">
-            <i class="pi pi-check-circle"></i>
-            <span>Data Karyawan Terpusat</span>
-          </div>
-          <div class="feature-item">
-            <i class="pi pi-check-circle"></i>
-            <span>Notifikasi Real-time</span>
-          </div>
+  <div class="login-card">
+    <!-- Logo & Header -->
+    <div class="login-header">
+      <div class="logo-wrapper">
+        <div class="logo-icon">
+          <i class="pi pi-building"></i>
         </div>
       </div>
+      <h1>HRIS</h1>
+      <p class="subtitle">Human Resource Information System</p>
     </div>
 
-    <!-- Right side - Login Form -->
-    <div class="login-form-container">
-      <div class="login-form-wrapper">
-        <div class="form-header">
-          <h2>Selamat Datang</h2>
-          <p>Silakan masuk ke akun Anda</p>
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Username Field -->
+      <div class="form-field">
+        <label for="username">Username</label>
+        <div class="input-wrapper">
+          <i class="pi pi-user"></i>
+          <input 
+            pInputText 
+            id="username" 
+            formControlName="username"
+            placeholder="Masukkan username"
+            [class.invalid]="usernameInvalid"
+          />
         </div>
-
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-          <!-- Username Field -->
-          <div class="form-group">
-            <label for="username">
-              Username / Email
-              <span class="required">*</span>
-            </label>
-            <span class="p-input-icon-left w-full">
-              <i class="pi pi-user"></i>
-              <input 
-                pInputText 
-                id="username" 
-                formControlName="username"
-                placeholder="Masukkan username atau email"
-                class="w-full"
-                [class.ng-invalid]="usernameInvalid"
-                [class.ng-dirty]="usernameInvalid"
-              />
-            </span>
-            @if (usernameInvalid) {
-              <small class="form-error">
-                @if (loginForm.get('username')?.errors?.['required']) {
-                  Username wajib diisi
-                } @else if (loginForm.get('username')?.errors?.['minlength']) {
-                  Username minimal 3 karakter
-                }
-              </small>
+        @if (usernameInvalid) {
+          <span class="error-text">
+            @if (loginForm.get('username')?.errors?.['required']) {
+              Username wajib diisi
+            } @else if (loginForm.get('username')?.errors?.['minlength']) {
+              Username minimal 3 karakter
             }
-          </div>
-
-          <!-- Password Field -->
-          <div class="form-group">
-            <label for="password">
-              Password
-              <span class="required">*</span>
-            </label>
-            <p-password 
-              id="password" 
-              formControlName="password"
-              placeholder="Masukkan password"
-              [toggleMask]="true"
-              [feedback]="false"
-              styleClass="w-full"
-              inputStyleClass="w-full"
-              [inputStyle]="{ width: '100%' }"
-            />
-            @if (passwordInvalid) {
-              <small class="form-error">
-                @if (loginForm.get('password')?.errors?.['required']) {
-                  Password wajib diisi
-                } @else if (loginForm.get('password')?.errors?.['minlength']) {
-                  Password minimal 6 karakter
-                }
-              </small>
-            }
-          </div>
-
-          <!-- Remember Me -->
-          <div class="form-group remember-me">
-            <p-checkbox 
-              formControlName="rememberMe" 
-              inputId="rememberMe" 
-              [binary]="true"
-            />
-            <label for="rememberMe" class="remember-label">Ingat saya</label>
-          </div>
-
-          <!-- Submit Button -->
-          <div class="form-group">
-            <p-button 
-              type="submit"
-              label="Masuk"
-              [loading]="isLoading()"
-              styleClass="w-full"
-              icon="pi pi-sign-in"
-            />
-          </div>
-        </form>
-
-        <div class="form-footer">
-          <a href="#" class="forgot-password">Lupa password?</a>
-        </div>
-        
-        <div class="demo-credentials">
-          <p><strong>Demo Credentials:</strong></p>
-          <ul>
-            <li><code>admin</code> / <code>admin123</code> (Admin)</li>
-            <li><code>hr</code> / <code>hr123</code> (HR)</li>
-            <li><code>employee</code> / <code>emp123</code> (Employee)</li>
-          </ul>
-        </div>
+          </span>
+        }
       </div>
 
-      <div class="login-footer">
-        <p>&copy; 2024 HRIS. All rights reserved.</p>
+      <!-- Password Field -->
+      <div class="form-field">
+        <label for="password">Password</label>
+        <p-password 
+          id="password" 
+          formControlName="password"
+          placeholder="Masukkan password"
+          [toggleMask]="true"
+          [feedback]="false"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+        />
+        @if (passwordInvalid) {
+          <span class="error-text">
+            @if (loginForm.get('password')?.errors?.['required']) {
+              Password wajib diisi
+            } @else if (loginForm.get('password')?.errors?.['minlength']) {
+              Password minimal 6 karakter
+            }
+          </span>
+        }
       </div>
+
+      <!-- Submit Button -->
+      <p-button 
+        type="submit"
+        label="Masuk"
+        [loading]="isLoading()"
+        styleClass="w-full login-btn"
+        icon="pi pi-sign-in"
+      />
+    </form>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      <p>&copy; 2024 HRIS. All rights reserved.</p>
     </div>
   </div>
 </div>

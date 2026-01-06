@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { Tag } from 'primeng/tag';
 import { Dialog } from 'primeng/dialog';
 import { Tooltip } from 'primeng/tooltip';
 import { ConfirmDialog } from 'primeng/confirmdialog';
@@ -22,7 +21,6 @@ import { Role } from '../../../../core/models';
     TableModule, 
     ButtonDirective, 
     InputText, 
-    Tag,
     Dialog,
     Tooltip,
     ConfirmDialog

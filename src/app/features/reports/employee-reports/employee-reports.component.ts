@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,7 +8,6 @@ import { Select } from 'primeng/select';
 import { InputText } from 'primeng/inputtext';
 import { DatePicker } from 'primeng/datepicker';
 import { Tag } from 'primeng/tag';
-import { Tooltip } from 'primeng/tooltip';
 import { ChartModule } from 'primeng/chart';
 import { ToastModule } from 'primeng/toast';
 import { TabsModule } from 'primeng/tabs';
@@ -34,7 +33,6 @@ import { forkJoin } from 'rxjs';
     InputText, 
     DatePicker, 
     Tag,
-    Tooltip,
     ChartModule,
     ToastModule,
     TabsModule
@@ -419,10 +417,7 @@ import { forkJoin } from 'rxjs';
               <ng-template pTemplate="body" let-row>
                 <tr>
                   <td>
-                    <div class="employee-cell">
-                      <div class="avatar">{{ getInitials(row.nama) }}</div>
-                      <span>{{ row.nama }}</span>
-                    </div>
+                    <span class="employee-name">{{ row.nama }}</span>
                   </td>
                   <td><span class="nik-badge">{{ row.nik }}</span></td>
                   <td>{{ row.email }}</td>
@@ -522,6 +517,7 @@ export class EmployeeReportsComponent implements OnInit {
   private overtimeService = inject(OvertimeRequestService);
   private leaveService = inject(LeaveRequestService);
   private messageService = inject(MessageService);
+  private cdr = inject(ChangeDetectorRef);
   
   // Loading states
   loadingAttendance = false;
@@ -612,8 +608,9 @@ export class EmployeeReportsComponent implements OnInit {
         this.calculateAttendanceStats();
         this.buildAttendanceChart();
         this.loadingAttendance = false;
+        this.cdr.markForCheck();
       },
-      error: (err: Error) => { console.error('Error:', err); this.loadingAttendance = false; }
+      error: (err: Error) => { console.error('Error:', err); this.loadingAttendance = false; this.cdr.markForCheck(); }
     });
   }
   
@@ -662,8 +659,9 @@ export class EmployeeReportsComponent implements OnInit {
         this.calculateOvertimeStats();
         this.buildOvertimeCharts();
         this.loadingOvertime = false;
+        this.cdr.markForCheck();
       },
-      error: (err: Error) => { console.error('Error:', err); this.loadingOvertime = false; }
+      error: (err: Error) => { console.error('Error:', err); this.loadingOvertime = false; this.cdr.markForCheck(); }
     });
   }
   
@@ -728,8 +726,9 @@ export class EmployeeReportsComponent implements OnInit {
         this.calculateLeaveStats();
         this.buildLeaveCharts();
         this.loadingLeave = false;
+        this.cdr.markForCheck();
       },
-      error: (err: Error) => { console.error('Error:', err); this.loadingLeave = false; }
+      error: (err: Error) => { console.error('Error:', err); this.loadingLeave = false; this.cdr.markForCheck(); }
     });
   }
   
@@ -800,8 +799,9 @@ export class EmployeeReportsComponent implements OnInit {
         this.applyEmployeeFilter();
         this.buildEmployeeChart();
         this.loadingEmployees = false;
+        this.cdr.markForCheck();
       },
-      error: (err: Error) => { console.error('Error:', err); this.loadingEmployees = false; }
+      error: (err: Error) => { console.error('Error:', err); this.loadingEmployees = false; this.cdr.markForCheck(); }
     });
   }
   

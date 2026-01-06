@@ -7,7 +7,6 @@ import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
 import { Tooltip } from 'primeng/tooltip';
-import { Avatar } from 'primeng/avatar';
 import { Dialog } from 'primeng/dialog';
 import { Select } from 'primeng/select';
 import { ConfirmDialog } from 'primeng/confirmdialog';
@@ -34,7 +33,7 @@ interface UserDisplay {
   standalone: true,
   imports: [
     CommonModule, FormsModule, RouterModule, TableModule, ButtonDirective, 
-    InputText, Tag, Tooltip, Avatar, Dialog, Select, ConfirmDialog
+    InputText, Tag, Tooltip, Dialog, Select, ConfirmDialog
   ],
   providers: [ConfirmationService],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -84,12 +83,7 @@ interface UserDisplay {
             <tr>
               <td>{{ i + 1 }}</td>
               <td>
-                <div class="user-cell">
-                  <p-avatar [label]="user.initials" shape="circle" [style]="{'background': user.roleBg, 'color': 'white'}" />
-                  <div class="user-info">
-                    <span class="user-name">{{ user.username }}</span>
-                  </div>
-                </div>
+                <span class="user-name">{{ user.username }}</span>
               </td>
               <td>{{ user.karyawan?.nama || '-' }}</td>
               <td>

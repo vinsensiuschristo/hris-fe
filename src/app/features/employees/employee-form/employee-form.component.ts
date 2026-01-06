@@ -7,8 +7,6 @@ import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { InputMask } from 'primeng/inputmask';
-import { Card } from 'primeng/card';
-import { Divider } from 'primeng/divider';
 import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
@@ -22,9 +20,7 @@ import { NotificationService } from '../../../core/services/notification.service
     InputText,
     Select,
     DatePicker,
-    InputMask,
-    Card,
-    Divider
+    InputMask
   ],
   template: `
     <div class="page-header">

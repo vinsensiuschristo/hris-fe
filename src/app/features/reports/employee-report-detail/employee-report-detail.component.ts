@@ -6,7 +6,6 @@ import { ButtonDirective } from 'primeng/button';
 import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { Tag } from 'primeng/tag';
-import { Card } from 'primeng/card';
 import { Tooltip } from 'primeng/tooltip';
 import { ChartModule } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
@@ -22,7 +21,6 @@ import { TableModule } from 'primeng/table';
     Select, 
     DatePicker, 
     Tag,
-    Card,
     Tooltip,
     ChartModule,
     TableModule
@@ -47,9 +45,6 @@ import { TableModule } from 'primeng/table';
     
     <!-- Employee Info Card -->
     <div class="employee-profile">
-      <div class="profile-avatar">
-        <span>{{ employee.initials }}</span>
-      </div>
       <div class="profile-info">
         <h2>{{ employee.employeeName }}</h2>
         <div class="info-row">

@@ -5,11 +5,9 @@ import { RouterModule } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { Avatar } from 'primeng/avatar';
 import { Tooltip } from 'primeng/tooltip';
 import { Dialog } from 'primeng/dialog';
 import { Select } from 'primeng/select';
-
 import { ConfirmDialog } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { EmployeeService } from '../../../core/services/employee.service';
@@ -36,7 +34,7 @@ interface EmployeeDisplay {
   standalone: true,
   imports: [
     CommonModule, FormsModule, RouterModule, TableModule, ButtonDirective, 
-    InputText, Avatar, Tooltip, Dialog, Select, ConfirmDialog
+    InputText, Tooltip, Dialog, Select, ConfirmDialog
   ],
   providers: [ConfirmationService],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -89,12 +87,7 @@ interface EmployeeDisplay {
             <tr>
               <td>{{ i + 1 }}</td>
               <td>
-                <div class="employee-cell">
-                  <p-avatar [label]="employee.initials" shape="circle" [style]="{'background': employee.avatarBg, 'color': 'white'}" />
-                  <div class="employee-info">
-                    <span class="employee-name">{{ employee.nama }}</span>
-                  </div>
-                </div>
+                <span class="employee-name">{{ employee.nama }}</span>
               </td>
               <td><code class="code-badge">{{ employee.nik }}</code></td>
               <td>{{ employee.departemen || '-' }}</td>

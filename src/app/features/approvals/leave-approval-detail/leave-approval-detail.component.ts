@@ -1,9 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Tag } from 'primeng/tag';
-import { Avatar } from 'primeng/avatar';
 import { Divider } from 'primeng/divider';
 import { Dialog } from 'primeng/dialog';
 import { Textarea } from 'primeng/textarea';
@@ -25,7 +24,7 @@ interface TimelineEvent {
 @Component({
   selector: 'app-leave-approval-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ButtonDirective, Tag, Avatar, Divider, Dialog, Textarea, ToastModule, ProgressSpinner],
+  imports: [CommonModule, RouterModule, FormsModule, ButtonDirective, Tag, Divider, Dialog, Textarea, ToastModule, ProgressSpinner],
   providers: [MessageService],
   template: `
     <p-toast />
@@ -124,9 +123,6 @@ interface TimelineEvent {
             <div class="card-header"><h3>Pengaju</h3></div>
             <div class="card-body">
               <div class="employee-profile">
-                <div class="avatar-wrapper">
-                  <p-avatar [label]="getInitials(request.karyawan?.nama || '')" size="xlarge" shape="circle" [style]="{'background': 'linear-gradient(135deg, #3B82F6, #2563EB)', 'color': 'white', 'font-size': '1.25rem', 'font-weight': '600'}" />
-                </div>
                 <div class="employee-info">
                   <span class="employee-name">{{ request.karyawan?.nama || '-' }}</span>
                   <span class="employee-code"><i class="pi pi-id-card"></i> {{ request.karyawan?.nik || '-' }}</span>
@@ -272,6 +268,7 @@ export class LeaveApprovalDetailComponent implements OnInit {
   private router = inject(Router);
   private leaveService = inject(LeaveRequestService);
   private messageService = inject(MessageService);
+  private cdr = inject(ChangeDetectorRef);
   
   loading = true;
   processing = false;
@@ -296,11 +293,13 @@ export class LeaveApprovalDetailComponent implements OnInit {
         this.request = data;
         this.buildTimeline();
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error loading request:', err);
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Gagal memuat data pengajuan' });
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }

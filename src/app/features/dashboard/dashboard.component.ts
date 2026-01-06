@@ -1,8 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { Card } from 'primeng/card';
-import { Button } from 'primeng/button';
 import { UIChart } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
@@ -30,8 +28,6 @@ interface RecentRequest {
   imports: [
     CommonModule,
     RouterModule,
-    Card,
-    Button,
     UIChart,
     TableModule,
     Tag

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -340,6 +340,7 @@ import { OvertimeRequest } from '../../../core/models';
 export class OvertimeApprovalComponent implements OnInit {
   private overtimeService = inject(OvertimeRequestService);
   private messageService = inject(MessageService);
+  private cdr = inject(ChangeDetectorRef);
   
   loading = false;
   
@@ -382,11 +383,13 @@ export class OvertimeApprovalComponent implements OnInit {
         this.allRequests = data;
         this.applyFilters();
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error loading overtime requests:', err);
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Gagal memuat data pengajuan lembur' });
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }

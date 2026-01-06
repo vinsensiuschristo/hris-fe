@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Tag } from 'primeng/tag';
-import { Avatar } from 'primeng/avatar';
 import { Divider } from 'primeng/divider';
 import { ProgressSpinner } from 'primeng/progressspinner';
 import { LeaveRequestService } from '../../../core/services/leave-request.service';
@@ -22,7 +21,7 @@ interface TimelineEvent {
 @Component({
   selector: 'app-leave-request-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, ButtonDirective, Tag, Avatar, Divider, ProgressSpinner],
+  imports: [CommonModule, RouterModule, ButtonDirective, Tag, Divider, ProgressSpinner],
   template: `
     @if (loading()) {
       <div style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
@@ -139,9 +138,6 @@ interface TimelineEvent {
             </div>
             <div class="card-body">
               <div class="employee-profile">
-                <div class="avatar-wrapper">
-                  <p-avatar [label]="getInitials(request()!.karyawan?.nama || '-')" size="xlarge" shape="circle" [style]="{'background': 'linear-gradient(135deg, #3B82F6, #2563EB)', 'color': 'white', 'font-size': '1.25rem', 'font-weight': '600'}" />
-                </div>
                 <div class="employee-info">
                   <span class="employee-name">{{ request()!.karyawan?.nama || '-' }}</span>
                   <span class="employee-code"><i class="pi pi-id-card"></i> {{ request()!.karyawan?.nik || '-' }}</span>

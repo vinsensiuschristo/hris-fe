@@ -4,10 +4,8 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
-
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
-import { Card } from 'primeng/card';
 import { FileUpload } from 'primeng/fileupload';
 import { NotificationService } from '../../../core/services/notification.service';
 import { LeaveRequestService } from '../../../core/services/leave-request.service';
@@ -25,7 +23,6 @@ import { LeaveTypeService } from '../../../core/services/master-data.service';
     DatePicker, 
     Select, 
     Textarea,
-    Card,
     FileUpload
   ],
   template: `

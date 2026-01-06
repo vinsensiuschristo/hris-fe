@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -309,6 +309,7 @@ import { LeaveRequest } from '../../../core/models';
 export class LeaveApprovalComponent implements OnInit {
   private leaveService = inject(LeaveRequestService);
   private messageService = inject(MessageService);
+  private cdr = inject(ChangeDetectorRef);
   
   loading = false;
   
@@ -350,11 +351,13 @@ export class LeaveApprovalComponent implements OnInit {
         this.allRequests = data;
         this.applyFilters();
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error loading leave requests:', err);
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Gagal memuat data pengajuan cuti' });
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }

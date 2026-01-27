@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.hris.company.com/api', // Ganti dengan URL production
+  apiUrl: 'https://hris-be-production-74c0.up.railway.app',
   appName: 'HRIS - Sistem Informasi SDM',
   appVersion: '1.0.0',
   
